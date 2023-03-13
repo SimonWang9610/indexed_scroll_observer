@@ -20,11 +20,11 @@ and the Flutter guide for
 2. No breaking for your current sliver widgets, e.g., `ListView`/`GridView`, `SliverList`/`SliverGrid`/`SliverAppBar`
 3. support almost official `RenderSliver` that has single child or multi children
 
-<img src="https://github.com/SimonWang9610/indexed_scroll_observer/snapshots/custom_scroll_view_demo.gif">
-<img src="https://github.com/SimonWang9610/indexed_scroll_observer/snapshots/grid_view_demo.gif">
-<img src="https://github.com/SimonWang9610/indexed_scroll_observer/snapshots/reorderable_demo.gif">
-<img src="https://github.com/SimonWang9610/indexed_scroll_observer/snapshots/separated_list_view_demo.gif">
-<img src="https://github.com/SimonWang9610/indexed_scroll_observer/snapshots/list_view_demo.gif">
+<img src="https://github.com/SimonWang9610/indexed_scroll_observer/blob/main/snapshots/custom_scroll_view_demo.gif?raw=true" width="320">
+<img src="https://github.com/SimonWang9610/indexed_scroll_observer/blob/main/snapshots/grid_view_demo.gif?raw=true" width="320">
+<img src="https://github.com/SimonWang9610/indexed_scroll_observer/blob/main/snapshots/reorderable_demo.gif?raw=true" width="320">
+<img src="https://github.com/SimonWang9610/indexed_scroll_observer/blob/main/snapshots/separated_list_view_demo.gif?raw=true" width="320">
+<img src="https://github.com/SimonWang9610/indexed_scroll_observer/blob/main/snapshots/list_view_demo.gif?raw=true">
 
 ## Getting started
 

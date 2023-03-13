@@ -4,7 +4,7 @@ description:
   to jump/animateToIndex for your SliverList/Grid without breaking your current widgets.
   Just wrap your item widgets using [ObserverProxy] and setup a [ScrollObserver] for them, the you go.
 
-version: 0.0.1
+version: 1.0.0
 homepage: https://github.com/SimonWang9610/indexed_scroll_observer
 repository: https://github.com/SimonWang9610/indexed_scroll_observer
 issue_tracker: https://github.com/SimonWang9610/indexed_scroll_observer/issues
