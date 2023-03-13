@@ -490,8 +490,6 @@ class _MultiChildObserver extends ScrollObserver {
   /// the current laid out last child of [sliver]
   int? _last;
 
-  int? _crossCount;
-
   double _estimatedAveragePageGap = 0;
 
   @override
