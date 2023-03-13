@@ -12,7 +12,7 @@ typedef IndexConverter = int Function(int);
 /// the tolerance between the scroll offset of items and the current pixels of [ScrollPosition]
 const double _kPixelDiffTolerance = 5;
 
-const Duration _kDefaultAdjustDuration = Duration(milliseconds: 120);
+const Duration _kDefaultAdjustDuration = Duration(milliseconds: 60);
 
 abstract class ObserverScrollInterface {
   /// if this observer is observing multi children for a [RenderSliver]
@@ -329,6 +329,7 @@ mixin ObserverScrollImpl on ObserverScrollInterface {
           index,
           position: position,
           curve: curve,
+          allowImplicitAnimating: true,
         );
         _revealing?.complete(true);
       } else {
@@ -362,6 +363,7 @@ mixin ObserverScrollImpl on ObserverScrollInterface {
   FutureOr<void> _adjustScrollWithTolerance(
     int index, {
     required ScrollPosition position,
+    bool allowImplicitAnimating = false,
     Curve? curve,
   }) {
     final estimated = estimateScrollOffset(
@@ -380,8 +382,8 @@ mixin ObserverScrollImpl on ObserverScrollInterface {
     if (canScroll && shouldAdjust) {
       return position.moveTo(
         estimated,
-        duration: (!hasMultiChild) ? _kDefaultAdjustDuration : null,
-        curve: curve ?? Curves.bounceInOut,
+        duration: allowImplicitAnimating ? _kDefaultAdjustDuration : null,
+        curve: curve,
       );
     }
     return null;
