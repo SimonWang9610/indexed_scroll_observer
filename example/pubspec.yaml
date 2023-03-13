@@ -31,10 +31,10 @@ dependencies:
   flutter:
     sdk: flutter
 
-  indexed_scroll_observer:
+  positioned_scroll_observer:
 
 dependency_overrides:
-  indexed_scroll_observer:
+  positioned_scroll_observer:
     path: ../
 
 dev_dependencies:

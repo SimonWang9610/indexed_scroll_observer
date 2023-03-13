@@ -8,18 +8,36 @@ import 'scroll_extent.dart';
 import 'onstage_strategy.dart';
 
 abstract class ObserverScrollInterface {
+  /// if this observer is observing multi children for a [RenderSliver]
   bool get hasMultiChild;
+
+  /// if some children have been laid out completely
+  /// indicates some required information to estimate scroll offset for a certain item is ready to use
+  /// if [firstLayoutFinished] is false, it would throw errors to report illegal usage
   bool get firstLayoutFinished;
+
+  /// if the observing [RenderSliver] is visible in its closest ancestor [RenderViewportBase]
   bool get sliverVisible;
+
+  /// if a [RenderSliver] is being observed by this observer
+  /// if false, it would throw errors to report illegal usage
+  /// only when [isActive] is true, the observer could work normally
   bool get isActive;
 
+  /// make the observed [RenderSliver] visible in its closest ancestor [RenderViewportBase]
   void showInViewport(
     ViewportOffset offset, {
     Duration duration = Duration.zero,
     Curve curve = Curves.ease,
   });
 
-  bool isOnStage(
+  /// if [index] is revealed in its closest ancestor [RenderSliver]
+  /// typically, [index] must have been observed before checking [isRevealed]
+  /// [strategy] is used to determine the threshold of which [index] should be regarded as revealed/visible
+  /// [shouldNormalized] indicates if we need to [normalizeIndex] into a valid range
+  /// [ScrollExtent] is the current scroll extent built from [ScrollPosition] to
+  /// indicate the current min/max scroll extent and pixels
+  bool isRevealed(
     int index, {
     required ScrollExtent scrollExtent,
     PredicatorStrategy strategy = PredicatorStrategy.tolerance,
@@ -27,27 +45,33 @@ abstract class ObserverScrollInterface {
   });
 
   /// estimate the scroll offset for [target]
-  /// for [_SingleChildObserver], it would return [ScrollExtent.current] to indicate that no need to estimate
-  /// since we could use [showInViewport] to ensure [sliver] is visible
-  ///
-  /// for [_MultiChildObserver], we would compare [target] and the current first and last child index
-  /// then estimate [target]'s scroll offset based on their difference and the previous estimated page extent
+  /// if [target] has been observed, it should return the observed scroll offset
+  /// if not, it would use some other information to estimate the scroll offset for [target]
+  /// See:
+  ///   * [ScrollObserver.singleChild], which implements how to do estimation for slivers with single child
+  ///   * [ScrollObserver.multiChild], which implements how to do estimation for slivers with multi children
   double estimateScrollOffset(
     int target, {
     required ScrollExtent scrollExtent,
   });
 
-  /// [ScrollObserver] that has only on child would always return 0
-  /// the below rules are applied for [ScrollObserver] that has multi children
-  /// 1) [itemCount] is null, we treat it is observing an infinite list/grid, so return [index] directly
-  /// 2) clamp [index] between [0, [itemCount - 1])
+  /// normalize [index] to a valid range.
+  /// typically for a [ScrollObserver] with a finite item count
+  /// See:
+  ///   * [ScrollObserver.singleChild]
+  ///   * [ScrollObserver.multiChild]
   int normalizeIndex(int index);
 
+  /// get the observed [ItemScrollExtent] for [index]
   ItemScrollExtent? getItemScrollExtent(int index);
+
+  /// get the observed [Size] for [index]
   Size? getItemSize(int index);
 
+  /// releasing some resources hold by this observer, e.g., [RenderSliver]
   void clear();
 
+  /// ensure [firstLayoutFinished] is true to guarantee legal usage for [estimateScrollOffset] before continuing
   void checkFirstLayoutFinished() {
     if (!firstLayoutFinished) {
       throw ErrorDescription(
@@ -58,9 +82,10 @@ abstract class ObserverScrollInterface {
   }
 }
 
+/// the tolerance between the scroll offset of items and the current pixels of [ScrollPosition]
 const double _kPixelDiffTolerance = 5;
 
-const Duration _kDefaultDuration = Duration(milliseconds: 60);
+const Duration _kDefaultAdjustDuration = Duration(milliseconds: 60);
 
 void _scheduleAsPostFrameCallback(void Function(Duration) callback) {
   WidgetsBinding.instance.addPostFrameCallback(callback);
@@ -75,6 +100,9 @@ mixin ObserverScrollImpl on ObserverScrollInterface {
     _revealing = null;
   }
 
+  /// jump to [index] based on the given [position]
+  /// this [ScrollObserver] and [position] should be associated/attached to the same [ScrollController]
+  /// if [closeToEdge] is true, we would try scrolling [index] to the edge of [ScrollView.reverse] if not over scrolling
   void jumpToIndex(
     int index, {
     required ScrollPosition position,
@@ -89,10 +117,14 @@ mixin ObserverScrollImpl on ObserverScrollInterface {
 
   Completer<bool>? _revealing;
 
-  /// animate to index using the given [ScrollPosition]
-  /// if a revealing task  is ongoing, schedule and execute this task  once the previous task is completed
+  /// animate to [index] based on the given [position]
+  ///
+  /// if a revealing task  is ongoing, schedule and execute this task once the previous task is completed
   /// by doing so, we could avoid multi revealing tasks ongoing
   /// the returned result indicates if all chained tasks are completed successfully
+  ///
+  /// this [ScrollObserver] and [position] should be associated/attached to the same [ScrollController]
+  /// if [closeToEdge] is true, we would try scrolling [index] to the edge of [ScrollView.reverse] if not over scrolling
   Future<bool> animateToIndex(
     int index, {
     required ScrollPosition position,
@@ -159,7 +191,7 @@ mixin ObserverScrollImpl on ObserverScrollInterface {
     } else {
       index = normalizeIndex(index);
 
-      final indexRevealed = isOnStage(
+      final indexRevealed = isRevealed(
         index,
         scrollExtent: ScrollExtent.fromPosition(position),
         strategy: PredicatorStrategy.inside,
@@ -222,7 +254,7 @@ mixin ObserverScrollImpl on ObserverScrollInterface {
     } else {
       index = normalizeIndex(index);
 
-      final indexRevealed = isOnStage(
+      final indexRevealed = isRevealed(
         index,
         scrollExtent: ScrollExtent.fromPosition(position),
         strategy: PredicatorStrategy.inside,
@@ -250,7 +282,6 @@ mixin ObserverScrollImpl on ObserverScrollInterface {
           index,
           position: position,
           curve: curve,
-          duration: duration,
         );
         _revealing?.complete(true);
       } else {
@@ -259,6 +290,7 @@ mixin ObserverScrollImpl on ObserverScrollInterface {
     }
   }
 
+  /// move [index] to the estimated scroll offset calculated by [estimateScrollOffset]
   FutureOr<void> _moveWithoutCheck(
     int index, {
     required ScrollPosition position,
@@ -277,10 +309,12 @@ mixin ObserverScrollImpl on ObserverScrollInterface {
     );
   }
 
+  /// adjust [index] to the leading edge
+  /// by comparing the difference between the estimated scroll offset and the current pixels of [ScrollPosition]
+  /// finalize moving only if the diff is over [_kPixelDiffTolerance] and not over scrolling
   FutureOr<void> _adjustScrollWithTolerance(
     int index, {
     required ScrollPosition position,
-    Duration? duration,
     Curve? curve,
   }) {
     final estimated = estimateScrollOffset(
@@ -289,18 +323,19 @@ mixin ObserverScrollImpl on ObserverScrollInterface {
     );
     final pixelDiff = estimated - position.pixels;
 
-    print(
-        "estimated: $estimated, current: ${position.pixels} diff: $pixelDiff");
+    // print(
+    //     "estimated: $estimated, current: ${position.pixels} diff: $pixelDiff");
 
     final canScroll =
         position.maxScrollExtent > position.pixels || position.pixels > 0;
     final shouldAdjust = pixelDiff.abs() > _kPixelDiffTolerance;
 
     if (canScroll && shouldAdjust) {
-      final effectiveDuration =
-          duration ?? ((!hasMultiChild) ? _kDefaultDuration : null);
-      return position.moveTo(estimated,
-          duration: effectiveDuration, curve: curve);
+      return position.moveTo(
+        estimated,
+        duration: (!hasMultiChild) ? _kDefaultAdjustDuration : null,
+        curve: curve,
+      );
     }
     return null;
   }

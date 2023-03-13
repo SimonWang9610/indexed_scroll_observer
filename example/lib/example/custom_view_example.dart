@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:indexed_scroll_observer/indexed_scroll_observer.dart';
+import 'package:positioned_scroll_observer/positioned_scroll_observer.dart';
+
 import 'sliver_jump.dart';
 
 class CustomViewExample extends StatefulWidget {
@@ -12,8 +13,8 @@ class CustomViewExample extends StatefulWidget {
 class _CustomViewExampleState extends State<CustomViewExample> {
   int _itemCount = 30;
 
-  final IndexedScrollController _controller =
-      IndexedScrollController.multiObserver();
+  final PositionedScrollController _controller =
+      PositionedScrollController.multiObserver();
 
   final keepAliveObserverKey = "keepAlive";
   final gridObserverKey = "grid";
@@ -72,7 +73,7 @@ class _CustomViewExampleState extends State<CustomViewExample> {
               reverse: false,
               slivers: [
                 SliverList(
-                  delegate: IndexedChildBuilderDelegate(
+                  delegate: PositionedChildBuilderDelegate(
                     childCount: _itemCount,
                     (context, index) => IndexedKeepAliveItem(
                       label: keepAliveObserverKey,
@@ -105,7 +106,7 @@ class _CustomViewExampleState extends State<CustomViewExample> {
                     vertical: 30,
                   ),
                   sliver: SliverGrid(
-                    delegate: IndexedChildBuilderDelegate(
+                    delegate: PositionedChildBuilderDelegate(
                       childCount: _itemCount,
                       (context, index) => ListTile(
                         key: ValueKey<int>(index),
@@ -129,7 +130,7 @@ class _CustomViewExampleState extends State<CustomViewExample> {
                   ),
                 ),
                 SliverList(
-                  delegate: IndexedChildBuilderDelegate(
+                  delegate: PositionedChildBuilderDelegate(
                     childCount: _itemCount,
                     (context, index) => ListTile(
                       key: ValueKey<int>(index),

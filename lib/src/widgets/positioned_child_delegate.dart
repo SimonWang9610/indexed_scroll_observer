@@ -3,11 +3,11 @@ import 'package:flutter/widgets.dart';
 import '../observer/scroll_observer.dart';
 import 'observer_proxy.dart';
 
-class IndexedChildListDelegate extends SliverIndexedProxyDelegate {
+class PositionedChildListDelegate extends SliverPositionedProxyDelegate {
   final List<Widget> children;
   final Map<Key?, int>? _keyToIndex;
 
-  IndexedChildListDelegate(
+  PositionedChildListDelegate(
     this.children, {
     super.addAutomaticKeepAlives,
     super.addProxy,
@@ -24,7 +24,7 @@ class IndexedChildListDelegate extends SliverIndexedProxyDelegate {
   @override
   int get estimatedChildCount => children.length;
   @override
-  bool shouldRebuild(covariant IndexedChildListDelegate oldDelegate) =>
+  bool shouldRebuild(covariant PositionedChildListDelegate oldDelegate) =>
       oldDelegate.children != children;
 
   bool get _isConstantInstance => _keyToIndex == null;
@@ -57,12 +57,12 @@ class IndexedChildListDelegate extends SliverIndexedProxyDelegate {
   }
 }
 
-class IndexedChildBuilderDelegate extends SliverIndexedProxyDelegate {
+class PositionedChildBuilderDelegate extends SliverPositionedProxyDelegate {
   final ChildIndexGetter? findChildIndexCallback;
   final NullableIndexedWidgetBuilder builder;
   final int? childCount;
 
-  IndexedChildBuilderDelegate(
+  PositionedChildBuilderDelegate(
     this.builder, {
     required this.childCount,
     this.findChildIndexCallback,
@@ -89,22 +89,13 @@ class IndexedChildBuilderDelegate extends SliverIndexedProxyDelegate {
   @override
   int? get estimatedChildCount => childCount;
   @override
-  bool shouldRebuild(covariant IndexedChildBuilderDelegate oldDelegate) =>
+  bool shouldRebuild(covariant PositionedChildBuilderDelegate oldDelegate) =>
       oldDelegate.builder != builder || childCount != oldDelegate.childCount;
 }
 
-/// only [addProxy] is true and [observer] is null, would use [ObserverProxy] to wrap the item widget
-/// we should enable [ScrollObserver] to be notified when [SliverChildDelegate.didFinishLayout]
-/// so we create [SliverIndexedProxyDelegate] to override [SliverChildDelegate.didFinishLayout]
-/// in future, we may no need to use this extended delegate
-/// if we could pass [didFinishLayout] callback for [SliverChildBuilderDelegate]/[SliverChildListDelegate]
-/// to have better compatibility
-///
-/// For convenience, using [IndexedListView]/[IndexedGridView] directly
-/// See also:
-///   * [IndexedListView], extends the official [ListView] to use [SliverIndexedProxyDelegate]
-///   * [IndexedGridView], extends the official [GridView] to use [SliverIndexedProxyDelegate]
-abstract class SliverIndexedProxyDelegate extends SliverChildDelegate {
+/// This class extends [SliverChildDelegate] to allow users to wrap their items conveniently
+/// only when [addProxy] is true and [observer] is null, item widgets would be wrapped in [ObserverProxy]
+abstract class SliverPositionedProxyDelegate extends SliverChildDelegate {
   final bool addAutomaticKeepAlives;
   final bool addRepaintBoundaries;
   final bool addSemanticIndexes;
@@ -113,7 +104,7 @@ abstract class SliverIndexedProxyDelegate extends SliverChildDelegate {
   final SemanticIndexCallback semanticIndexCallback;
   final ScrollObserver? observer;
 
-  SliverIndexedProxyDelegate({
+  SliverPositionedProxyDelegate({
     this.observer,
     this.addAutomaticKeepAlives = true,
     this.addRepaintBoundaries = true,
@@ -193,7 +184,7 @@ abstract class SliverIndexedProxyDelegate extends SliverChildDelegate {
   }
 
   @override
-  bool shouldRebuild(covariant SliverIndexedProxyDelegate oldDelegate) =>
+  bool shouldRebuild(covariant SliverPositionedProxyDelegate oldDelegate) =>
       observer != oldDelegate.observer;
 }
 

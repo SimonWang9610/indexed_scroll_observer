@@ -1,8 +1,7 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
-import 'package:indexed_scroll_observer/indexed_scroll_observer.dart';
-
+import 'package:positioned_scroll_observer/positioned_scroll_observer.dart';
 import 'sliver_jump.dart';
 
 class PositionedListExample extends StatefulWidget {
@@ -15,8 +14,8 @@ class PositionedListExample extends StatefulWidget {
 class _PositionedListExampleState extends State<PositionedListExample> {
   int _itemCount = 30;
 
-  final IndexedScrollController _controller =
-      IndexedScrollController.singleObserver();
+  final PositionedScrollController _controller =
+      PositionedScrollController.singleObserver();
 
   @override
   Widget build(BuildContext context) {
@@ -76,7 +75,7 @@ class _PositionedListExampleState extends State<PositionedListExample> {
             //         _controller.createOrObtainObserver(itemCount: _itemCount),
             //   ),
             // ),
-            child: IndexedListView.builder(
+            child: PositionedListView.builder(
               controller: _controller,
               itemBuilder: (context, index) => ListTile(
                 key: ValueKey<int>(index),
@@ -128,8 +127,8 @@ class _SeparatedPositionedListExampleState
     extends State<SeparatedPositionedListExample> {
   int _itemCount = 30;
 
-  final IndexedScrollController _controller =
-      IndexedScrollController.singleObserver();
+  final PositionedScrollController _controller =
+      PositionedScrollController.singleObserver();
 
   @override
   Widget build(BuildContext context) {
@@ -203,7 +202,7 @@ class _SeparatedPositionedListExampleState
           //   ),
           // ),
           Expanded(
-            child: IndexedListView.separated(
+            child: PositionedListView.separated(
               controller: _controller,
               itemBuilder: (_, index) => ListTile(
                 // key: ValueKey<int>(index),
@@ -268,8 +267,8 @@ class OfficialListExample extends StatefulWidget {
 class _OfficialListExampleState extends State<OfficialListExample> {
   int _itemCount = 30;
 
-  final IndexedScrollController _controller =
-      IndexedScrollController.singleObserver();
+  final PositionedScrollController _controller =
+      PositionedScrollController.singleObserver();
 
   @override
   void initState() {

@@ -1,7 +1,7 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
-import 'package:indexed_scroll_observer/indexed_scroll_observer.dart';
+import 'package:positioned_scroll_observer/positioned_scroll_observer.dart';
 
 import 'sliver_jump.dart';
 
@@ -15,8 +15,8 @@ class PositionedGridExample extends StatefulWidget {
 class _PositionedGridExampleState extends State<PositionedGridExample> {
   int _itemCount = 30;
 
-  final IndexedScrollController _controller =
-      IndexedScrollController.singleObserver();
+  final PositionedScrollController _controller =
+      PositionedScrollController.singleObserver();
 
   final String observerKey = "grid";
 
@@ -70,7 +70,7 @@ class _PositionedGridExampleState extends State<PositionedGridExample> {
           Expanded(
             child: GridView.custom(
               controller: _controller,
-              childrenDelegate: IndexedChildBuilderDelegate(
+              childrenDelegate: PositionedChildBuilderDelegate(
                 (context, index) => ListTile(
                   key: ValueKey<int>(index),
                   leading: const CircleAvatar(

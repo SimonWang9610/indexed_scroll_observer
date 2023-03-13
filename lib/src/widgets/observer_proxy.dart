@@ -102,8 +102,6 @@ class RenderObserverProxy extends RenderProxyBox {
   void paint(PaintingContext context, Offset offset) {
     super.paint(context, offset);
 
-    print("painting for [${_observer?.label}]");
-
     _observer?.doFinishLayout();
   }
 

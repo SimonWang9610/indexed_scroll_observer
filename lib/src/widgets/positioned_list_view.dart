@@ -3,15 +3,15 @@ import 'dart:math';
 import 'package:flutter/widgets.dart';
 
 import '../observer/scroll_observer.dart';
-import 'indexed_child_delegate.dart';
+import 'positioned_child_delegate.dart';
 
-class IndexedListView extends ListView {
+class PositionedListView extends ListView {
   @override
-  final SliverIndexedProxyDelegate childrenDelegate;
+  final SliverPositionedProxyDelegate childrenDelegate;
   final bool addProxy;
   final ScrollObserver? observer;
 
-  IndexedListView({
+  PositionedListView({
     super.key,
     super.scrollDirection,
     super.reverse,
@@ -42,7 +42,7 @@ class IndexedListView extends ListView {
           observer == null || observer.itemCount == children.length,
           "[ScrollObserver] should have the same item count as children.length",
         ),
-        childrenDelegate = IndexedChildListDelegate(
+        childrenDelegate = PositionedChildListDelegate(
           children,
           addProxy: addProxy,
           observer: observer,
@@ -51,7 +51,7 @@ class IndexedListView extends ListView {
           addSemanticIndexes: addSemanticIndexes,
         );
 
-  IndexedListView.builder({
+  PositionedListView.builder({
     super.key,
     super.scrollDirection,
     super.reverse,
@@ -83,7 +83,7 @@ class IndexedListView extends ListView {
           'You can only pass itemExtent or prototypeItem, not both.',
         ),
         assert(observer == null || observer.itemCount == itemCount),
-        childrenDelegate = IndexedChildBuilderDelegate(
+        childrenDelegate = PositionedChildBuilderDelegate(
           itemBuilder,
           childCount: itemCount,
           addAutomaticKeepAlives: addAutomaticKeepAlives,
@@ -94,7 +94,7 @@ class IndexedListView extends ListView {
           observer: observer,
         );
 
-  IndexedListView.separated({
+  PositionedListView.separated({
     super.key,
     super.scrollDirection,
     super.reverse,
@@ -117,7 +117,7 @@ class IndexedListView extends ListView {
     this.addProxy = true,
     this.observer,
     required int itemCount,
-  }) : childrenDelegate = IndexedChildBuilderDelegate(
+  }) : childrenDelegate = PositionedChildBuilderDelegate(
           (context, index) {
             final itemIndex = index ~/ 2;
             if (index.isEven) {
