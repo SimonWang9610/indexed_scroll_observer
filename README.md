@@ -21,11 +21,11 @@ and the Flutter guide for
 3. support almost official `RenderSliver` that has single child or multi children
 
 <div style="float: left">
-    <img src="https://github.com/SimonWang9610/indexed_scroll_observer/blob/main/snapshots/custom_scroll_view_demo.gif?raw=true" width="320">
-    <img src="https://github.com/SimonWang9610/indexed_scroll_observer/blob/main/snapshots/grid_view_demo.gif?raw=true" width="320">
-    <img src="https://github.com/SimonWang9610/indexed_scroll_observer/blob/main/snapshots/reorderable_demo.gif?raw=true" width="320">
-    <img src="https://github.com/SimonWang9610/indexed_scroll_observer/blob/main/snapshots/separated_list_view_demo.gif?raw=true" width="320">
-    <img src="https://github.com/SimonWang9610/indexed_scroll_observer/blob/main/snapshots/list_view_demo.gif?raw=true">
+    <img src="https://github.com/SimonWang9610/indexed_scroll_observer/blob/main/snapshots/custom.gif?raw=true" width="320">
+    <img src="https://github.com/SimonWang9610/indexed_scroll_observer/blob/main/snapshots/grid.gif?raw=true" width="320">
+    <img src="https://github.com/SimonWang9610/indexed_scroll_observer/blob/main/snapshots/reorderable.gif?raw=true" width="320">
+    <img src="https://github.com/SimonWang9610/indexed_scroll_observer/blob/main/snapshots/separated.gif?raw=true" width="320">
+    <img src="https://github.com/SimonWang9610/indexed_scroll_observer/blob/main/snapshots/lis.gif?raw=true">
 </div>
 
 ## Getting started

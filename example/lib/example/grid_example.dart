@@ -65,11 +65,6 @@ class _PositionedGridExampleState extends State<PositionedGridExample> {
                 duration: const Duration(milliseconds: 200),
                 curve: Curves.bounceInOut,
               );
-              // _controller.animateToIndex(
-              //   _itemCount - index,
-              //   duration: const Duration(milliseconds: 200),
-              //   curve: Curves.bounceInOut,
-              // );
             },
           ),
           Expanded(

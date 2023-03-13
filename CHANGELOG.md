@@ -1,3 +1,7 @@
+## 1.0.2
+
+- fix: not animating if item has been visible. [Issue #1](https://github.com/SimonWang9610/indexed_scroll_observer/issues/1)
+
 ## 1.0.1 (2023-03-13)
 
 - improve documentation
