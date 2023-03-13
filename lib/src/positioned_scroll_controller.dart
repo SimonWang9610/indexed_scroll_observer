@@ -6,22 +6,20 @@ import 'observer/scroll_observer.dart';
 
 import 'observer/scroll_extent.dart';
 
-/// [PositionedScrollController] would extend the ability of [ScrollController]
-/// so that users could use [jumpToIndex] and [animateToIndex] to display a specific widget
+/// [PositionedScrollController] would extend the ability of [ScrollController],
+/// so that users could use [jumpToIndex] and [animateToIndex] to display a specific widget.
 ///
-/// if users just want to use a single [ScrollObserver] for [ListView]/[GridView]
-/// using [PositionedScrollController.singleObserver] to only enable one [ScrollObserver]
+/// if users just want to use a single [ScrollObserver] for [ListView]/[GridView],
+/// using [PositionedScrollController.singleObserver] to only enable one [ScrollObserver].
 ///
-/// This is a sample to use [PositionedScrollController.singleObserver]
-
-/// if users need to observe multi slivers, e.g., [ListView]/[GridView]/[SliverList]/[SliverGrid]
-/// users must use [PositionedScrollController.multiObserver] to create [ScrollObserver] for those slivers respectively
+/// if users need to observe multi slivers, e.g., [ListView]/[GridView]/[SliverList]/[SliverGrid],
+/// users must use [PositionedScrollController.multiObserver] to create [ScrollObserver] for those slivers respectively.
 
 /// however, for [PositionedScrollController.singleObserver],
-/// the observer key is not required since only one [ScrollObserver] is active
+/// the observer key is not required since only one [ScrollObserver] is active.
 ///
-/// for [PositionedScrollController.multiObserver]
-/// users must specify unique keys for each sliver to identify which sliver they want to [jumpToIndex]/[animateToIndex]
+/// for [PositionedScrollController.multiObserver],
+/// users must specify unique keys for each sliver to identify which sliver they want to [jumpToIndex]/[animateToIndex].
 abstract class PositionedScrollController extends ScrollController {
   PositionedScrollController({
     super.initialScrollOffset,
@@ -29,8 +27,8 @@ abstract class PositionedScrollController extends ScrollController {
     super.debugLabel,
   });
 
-  /// create a [PositionedScrollController] that manage multi [ScrollObserver]
-  /// typically for [CustomScrollView] that has multi slivers
+  /// create a [PositionedScrollController] that manage multi [ScrollObserver],
+  /// typically for [CustomScrollView] that has multi slivers.
   factory PositionedScrollController.multiObserver({
     double initialScrollOffset = 0.0,
     bool keepScrollOffset = true,
@@ -42,8 +40,8 @@ abstract class PositionedScrollController extends ScrollController {
         debugLabel: debugLabel,
       );
 
-  /// create a [PositionedScrollController] that manage single [ScrollObserver]
-  /// typically for [ListView]/[GridView] that have only one sliver
+  /// create a [PositionedScrollController] that manage single [ScrollObserver].
+  /// typically for [ListView]/[GridView] that have only one sliver.
   factory PositionedScrollController.singleObserver({
     double initialScrollOffset = 0.0,
     bool keepScrollOffset = true,
@@ -61,35 +59,36 @@ abstract class PositionedScrollController extends ScrollController {
     _clear();
   }
 
-  /// create a [ScrollObserver] if not exist for the [observerKey]
-  /// otherwise, obtain the [ScrollObserver] bound with [observerKey]
+  /// create a [ScrollObserver] if not exist for the [observerKey];
+  /// otherwise, obtain the [ScrollObserver] bound with [observerKey].
   /// [observerKey] is required for [_MultiScrollController],
-  /// while it has no effect for [_SingleScrollController]
+  /// while it has no effect for [_SingleScrollController].
   ///
   /// [hasMultiChild] would specify if [ScrollObserver] would observe a sliver that has multi children
-  /// e.g., [SliverList]/[SliverGrid]
-  /// if true, it would create a [ScrollObserver.multiChild]
-  /// otherwise, it would create a [ScrollObserver.singleChild]
-  /// therefore, users must specify the correct [hasMultiChild] for the sliver
-  /// for example:
-  /// [hasMultiChild] should be true for [SliverGrid]/[SliverList]
-  /// [hasMultiChild] should be false for [SliverAppBar]
+  /// e.g., [SliverList]/[SliverGrid].
+  /// if true, it would create a [ScrollObserver.multiChild];
+  /// otherwise, it would create a [ScrollObserver.singleChild].
   ///
-  /// [itemCount] should be the number of items for this [ScrollObserver] and same as the item count of the sliver
+  /// therefore, users must specify the correct [hasMultiChild] for the sliver,
+  /// for example:
+  /// [hasMultiChild] should be true for [SliverGrid]/[SliverList];
+  /// [hasMultiChild] should be false for [SliverAppBar].
+  ///
+  /// [itemCount] should be the number of items for this [ScrollObserver] and same as the item count of the sliver.
   /// however, for [ListView.separated], [itemCount] should also include the number of separators, for example:
-  /// you specify [ListView.separated] has 30 items, the actual [itemCount] for [ScrollObserver] should be 60
-  /// since each separator would also be indexed and rendered in the viewport
+  /// you specify [ListView.separated] has 30 items, the actual [itemCount] for [ScrollObserver] should be 60,
+  /// since each separator would also be indexed and rendered in the viewport.
   ///
   /// if [itemCount] is null, [ScrollObserver] would treat the sliver as scrolling infinitely
-  /// unless [hasMultiChild] is false (that would create [ScrollObserver.singleChild])
+  /// unless [hasMultiChild] is false (that would create [ScrollObserver.singleChild]).
   ///
   /// NOTE:
   /// [PositionedScrollController.multiObserver] and [PositionedScrollController.singleObserver]
-  /// would not know if their [ScrollObserver] have multi child when creating a [ScrollObserver]
-  /// for both [PositionedScrollController], their [ScrollObserver]s could be any type
+  /// would not know if their [ScrollObserver] have multi child when creating a [ScrollObserver].
+  /// for both [PositionedScrollController], their [ScrollObserver]s could be any type.
   ///
   /// the only difference between [PositionedScrollController.multiObserver] and [PositionedScrollController.singleObserver]
-  /// is the number of [ScrollObserver]s they manage
+  /// is the number of [ScrollObserver]s they manage.
   ScrollObserver createOrObtainObserver({
     bool hasMultiChild = true,
     String? observerKey,
@@ -133,16 +132,15 @@ abstract class PositionedScrollController extends ScrollController {
         );
   }
 
-  /// show the sliver bound with [observerKey] in its closest viewport ancestor
-  /// [observerKey] is required for [PositionedScrollController.multiObserver]
-  /// it would take effects only when [observerKey] has a [ScrollObserver] that is active
+  /// show the sliver bound with [observerKey] in its closest viewport ancestor.
+  /// [observerKey] is required for [PositionedScrollController.multiObserver],
+  /// it would take effects only when [observerKey] has a [ScrollObserver] that is active.
   ///
-  /// if you ensure [observerKey]'s sliver would definitely have an ancestor [RenderViewportBase]
-  /// but it is not shown on the screen, you could try increasing [maxTraceCount] to allow tracing up further
+  /// if you ensure [observerKey]'s sliver would definitely have an ancestor [RenderViewportBase],
+  /// but it is not shown on the screen, you could try increasing [ScrollObserver.maxTraceCount] to allow tracing up further.
   ///
-  /// the [RenderSliver]'s scroll offset would be determined by the [ScrollView.reverse]
-  /// if the sliver if [observerKey] is in a [CustomScrollView] and only has one child
-  /// its scroll offset would be determined by the [CustomScrollView.reverse] and its index in [CustomScrollView.slivers]
+  /// if the sliver for [observerKey] is in a [CustomScrollView] and only has one child,
+  /// its scroll offset would be determined by the [CustomScrollView.reverse] and its index in [CustomScrollView.slivers].
   /// currently, such a case happens to [SliverAppBar]
   void showInViewport({
     String? observerKey,
@@ -160,12 +158,15 @@ abstract class PositionedScrollController extends ScrollController {
     }
   }
 
-  /// for [PositionedScrollController.multiObserver], [whichObserver] is required
-  /// if [closeToEdge] is false, [jumpToIndex] only ensure [index] is visible on the screen
-  /// if [closeToEdge] is true, try to scroll [index] at the leading edge if not overscrolling
-  /// the leading edge would depend on the [ScrollView.reverse]
-  /// if [ScrollView.reverse] is false, the leading edge is the top of the viewport
-  /// if [ScrollView.reverse] is true, the leasing edge is the bottom of the viewport
+  /// for [PositionedScrollController.multiObserver], [whichObserver] is required.
+  /// if [closeToEdge] is false, [jumpToIndex] only ensure [index] is visible on the screen.
+  /// if [closeToEdge] is true, try to scroll [index] at the leading edge if not overscrolling.
+  ///
+  /// the leading edge would depend on the [ScrollView.reverse].
+  /// if [ScrollView.reverse] is false, the leading edge is the top of the viewport;
+  /// if [ScrollView.reverse] is true, the leasing edge is the bottom of the viewport.
+  /// See also:
+  ///   * [ScrollObserver.jumpToIndex], which implements how to scroll with animation.
   void jumpToIndex(int index,
       {String? whichObserver, bool closeToEdge = true}) {
     final observer = _obtainObserver(observerKey: whichObserver);
@@ -175,17 +176,21 @@ abstract class PositionedScrollController extends ScrollController {
     }
   }
 
-  /// for [PositionedScrollController.multiObserver], [whichObserver] is required
-  /// if [closeToEdge] is false, [jumpToIndex] only ensure [index] is visible on the screen
-  /// if [closeToEdge] is true, try to scroll [index] at the leading edge if not overscrolling
-  /// the leading edge would depend on the [ScrollView.reverse]
-  /// if [ScrollView.reverse] is false, the leading edge is the top of the viewport
-  /// if [ScrollView.reverse] is true, the leasing edge is the bottom of the viewport
+  /// for [PositionedScrollController.multiObserver], [whichObserver] is required.
+  /// if [closeToEdge] is false, [jumpToIndex] only ensure [index] is visible on the screen;
+  /// if [closeToEdge] is true, try to scroll [index] at the leading edge if not overscrolling.
+  ///
+  /// the leading edge would depend on the [ScrollView.reverse]:
+  /// if [ScrollView.reverse] is false, the leading edge is the top of the viewport;
+  /// if [ScrollView.reverse] is true, the leasing edge is the bottom of the viewport.
 
-  /// if [animateToIndex] is invoked when [_animationRevealing] is not completed
-  /// we schedule revealing [index] after the previous revealing ends
-  /// if no [_animationRevealing] is active, we start animating instantly
-  /// By doing so, we might avoid conflicts between two continuous revealing animation
+  /// if [animateToIndex] is invoked when [_animationRevealing] is not completed,
+  /// we schedule revealing [index] after the previous revealing ends.
+  /// if no revealing task is active, we start animating instantly.
+  /// By doing so, we might avoid conflicts between two continuous revealing animation.
+  ///
+  /// See also:
+  ///   * [ScrollObserver.animateToIndex], which implements how to scroll with animation.
   Future<bool> animateToIndex(
     int index, {
     required Duration duration,
@@ -207,6 +212,7 @@ abstract class PositionedScrollController extends ScrollController {
     }
   }
 
+  /// check the given [index] is painted on the screen using [whichObserver].
   bool isVisible(int index, {String? whichObserver}) {
     final observer = _obtainObserver(observerKey: whichObserver);
 

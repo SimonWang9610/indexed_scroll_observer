@@ -1,10 +1,7 @@
 name: positioned_scroll_observer
-description:
-  An elegant scroll observer that support all official slivers. You could use this package
-  to jump/animateToIndex for your SliverList/Grid without breaking your current widgets.
-  Just wrap your item widgets using [ObserverProxy] and setup a [ScrollObserver] for them, the you go.
+description: An elegant scroll observer that support all official slivers could jump/animateToIndex for SliverList/Grid without breaking current widgets.
 
-version: 1.0.0
+version: 1.0.1
 homepage: https://github.com/SimonWang9610/indexed_scroll_observer
 repository: https://github.com/SimonWang9610/indexed_scroll_observer
 issue_tracker: https://github.com/SimonWang9610/indexed_scroll_observer/issues

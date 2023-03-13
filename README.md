@@ -121,6 +121,8 @@ _controller.jumpToIndex(index);
 
 There you go
 
+> For `ListView.custom` and `GridView.custom`, you could also use `PositionedChildListDelegate` and `PositionedChildBuilderDelegate` for wrapping items in `ObserverProxy` conveniently
+
 ## Usage
 
 1. The item widget/builder must be wrapped using `ObserverProxy`
@@ -153,20 +155,29 @@ It has all methods of `ScrollController` by extends `ScrollController` and then 
 - `PositionedScrollController.multiObserver` manage multiple `ScrollObserver` that may have single child or multi children
 
 - `createOrObtainObserver`
-  | parameter | required | default | description |
-  |:--------- |:---------|:-----------|:------------|
-  | hasMultiChild | YES | true | determine if the `ScrollObserver` is for a sliver that has multi children|
-  | itemCount | No | null | the sliver's item count. if null, the observer would behave as a infinite scroll view|
-  |maxTraceCount| NO | null | the maximum count when tracing `ObserverProxy`'s ancestor `RenderSliver` and `ParentData`. Default to `50` internally, only setting it when you ensure you need to trace more nodes.|
-  | targetToRenderIndex | NO | null| sometimes, the target index to which users want to scroll may not be same as the current render index. By using [targetToRenderIndex], users could define how to map the target index to a render index, e.g., `ListView.separated`/`ReorderableListView`. Users could set it on an instance of `ScrollObserver` not only when creating it. Setting it only when you ensure you need it. |
-  | renderToTargetIndex | NO| null | same as `targetToRenderIndex` but in converting reversely. |
+
+| parameter           | required | default | description                                                                                                                                                                                                                                                                                                                                                                              |
+| ------------------- | -------- | ------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| hasMultiChild       | YES      | true    | determine if the `ScrollObserver` is for a sliver that has multi children                                                                                                                                                                                                                                                                                                                |
+| itemCount           | No       | null    | the sliver's item count. if null, the observer would behave as a infinite scroll view                                                                                                                                                                                                                                                                                                    |
+| maxTraceCount       | NO       | null    | the maximum count when tracing `ObserverProxy`'s ancestor `RenderSliver` and `ParentData`. Default to `50` internally, only setting it when you ensure you need to trace more nodes.                                                                                                                                                                                                     |
+| targetToRenderIndex | NO       | null    | sometimes, the target index to which users want to scroll may not be same as the current render index. By using [targetToRenderIndex], users could define how to map the target index to a render index, e.g., `ListView.separated`/`ReorderableListView`. Users could set it on an instance of `ScrollObserver` not only when creating it. Setting it only when you ensure you need it. |
+| renderToTargetIndex | NO       | null    | same as `targetToRenderIndex` but in converting reversely.                                                                                                                                                                                                                                                                                                                               |
 
 - `jumpToIndex` and `animateToIndex`. (should pass `duration` and `Curve` if using `animateToIndex`)
-  | parameter | required | default | description |
-  | :-------- | :------- | :------ | :---------- |
-  | index | YES | N/A | the item's index for a sliver. No effects if `ScrollObserver.hasMultiChild` is `false`|
-  | whichObserver | NO | null | the specific `ScrollObserver` that is observing a sliver. It is required if `ScrollObserver.hasMultiChild` is `true`|
-  | closeToEdge | YES | `true` | try to scroll `index` at the leading edge if not over scrolling; otherwise, only ensure the `index` is visible on the screen.|
+
+| parameter     | required | default | description                                                                                                                   |
+| ------------- | -------- | ------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| index         | YES      | N/A     | the item's index for a sliver. No effects if `ScrollObserver.hasMultiChild` is `false`                                        |
+| whichObserver | NO       | null    | the specific `ScrollObserver` that is observing a sliver. It is required if `ScrollObserver.hasMultiChild` is `true`          |
+| closeToEdge   | YES      | `true`  | try to scroll `index` at the leading edge if not over scrolling; otherwise, only ensure the `index` is visible on the screen. |
+
+- `isVisible`: check if the given index is painted on the screen.
+
+| parameter     | required | default | description                                                                                                                |
+| ------------- | -------- | ------- | -------------------------------------------------------------------------------------------------------------------------- |
+| index         | YES      | N/A     | the specify `index` you want to check visibility                                                                           |
+| whichObserver | NO       | null    | the associated `ScrollObserver` with the `index`. Required if the controller is `PositionedScrollController.multiObserver` |
 
 ### `ScrollObserver`
 
@@ -174,8 +185,15 @@ It has all methods of `ScrollController` by extends `ScrollController` and then 
 - `ScrollObserver.singleChild`: create a `ScrollObserver` that observes a `RenderSliver` with a single child
 
 - `jumpToIndex` and `animateToIndex`. (should pass `duration` and `Curve` if using `animateToIndex`)
-  | parameter | required | default | description |
-  | :-------- | :------- | :------ | :---------- |
-  | index | YES | N/A | the item's index for a sliver. No effects if `ScrollObserver.hasMultiChild` is `false`|
-  | closeToEdge | YES | `true` | try to scroll `index` at the leading edge if not over scrolling; otherwise, only ensure the `index` is visible on the screen.|
-  | position | YES | N/A | the `ScrollPosition` attached to a `ScrollController`|
+
+| parameter   | required | default | description                                                                                                                   |
+| ----------- | -------- | ------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| index       | YES      | N/A     | the item's index for a sliver. No effects if `ScrollObserver.hasMultiChild` is `false`                                        |
+| closeToEdge | YES      | `true`  | try to scroll `index` at the leading edge if not over scrolling; otherwise, only ensure the `index` is visible on the screen. |
+| position    | YES      | N/A     | the `ScrollPosition` attached to a `ScrollController`                                                                         |
+
+### My other packages
+
+- [simple_http_api![pub package](https://img.shields.io/pub/v/simple_http_api?color=blue&style=plastic)](https://pub.dev/packages/simple_http_api)
+
+- [relative_stack![pub package](https://img.shields.io/pub/v/relative_stack?color=blue&style=plastic)](https://pub.dev/packages/relative_stack)

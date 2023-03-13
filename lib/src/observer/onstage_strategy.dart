@@ -66,14 +66,14 @@ enum PredicatorStrategy {
 }
 
 class OnstagePredicator {
-  /// if [PredicatorStrategy.tolerance]
-  /// the item would be predicated as visible only when the visible ratio is greater than [tolerance]
-  /// if [PredicatorStrategy.inside]
-  /// the item would be predicted as visible only when the total item is visible in [leadingEdge] and [trailingEdge]
-  /// [leadingOffset] would be the global scroll Offset for the item starts
-  /// [trailingOffset] would be the global scroll offset that is calculated:[leadingOffset] + itemSize
-  /// [leadingEdge] is [ScrollPosition.pixels]
-  /// [trailingEdge] would be calculated: [leadingEdge] + [SliverConstraints.viewportMainAxisExtent]
+  /// if [PredicatorStrategy.tolerance],
+  /// the item would be predicated as visible only when the visible ratio is greater than [tolerance].
+  /// if [PredicatorStrategy.inside],
+  /// the item would be predicted as visible only when the total item is visible in [leadingEdge] and [trailingEdge].
+  /// [leadingOffset] would be the global scroll Offset for the item starts.
+  /// [trailingOffset] would be the global scroll offset that is calculated:[leadingOffset] + itemSize.
+  /// [leadingEdge] is [ScrollPosition.pixels], and
+  /// [trailingEdge] would be calculated: [leadingEdge] + [SliverConstraints.viewportMainAxisExtent].
   static bool predict(
     double leadingOffset,
     double trailingOffset, {

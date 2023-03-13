@@ -22,7 +22,7 @@ import '../observer/scroll_observer.dart';
 ///
 /// for [SliverAppBar], use like:
 ///
-/// {@tool snippet}
+/// {@tool snippets}
 /// ```dart
 /// final IndexedScrollController _controller =
 ///       IndexedScrollController.multiObserver();

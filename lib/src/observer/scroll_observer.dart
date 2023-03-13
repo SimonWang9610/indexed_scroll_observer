@@ -13,12 +13,12 @@ import '../util.dart';
 // todo: handle memory pressure when there are too much models
 
 /// [ScrollObserver.multiChild] could observe [RenderSliver] that has multi child,
-///  e.g., [SliverList]/[SliverGrid]
+///  e.g., [SliverList]/[SliverGrid].
 /// [ScrollObserver.singleChild] could observer [RenderSliver] that has a single child,
-///  e.g., [SliverAppBar]
-/// since [ScrollObserver] relies on [RenderObserverProxy] to capture the most recent layout result
-/// therefore, [RenderSliver]'s child/children must be wrapped in [ObserverProxy]
-/// so that [ObserverProxy] could notify [ScrollObserver] to invoke [onLayout] and [doFinishLayout]
+///  e.g., [SliverAppBar].
+/// [ScrollObserver] relies on [RenderObserverProxy] to capture the most recent layout result,
+/// and therefore, [RenderSliver]'s child/children must be wrapped in [ObserverProxy],
+/// so that [ObserverProxy] could notify [ScrollObserver] to invoke [onLayout] and [doFinishLayout].
 ///
 /// See also:
 /// * [ObserverProxy], which proxies layout between [RenderSliver] and its child/children
@@ -31,15 +31,17 @@ abstract class ScrollObserver extends ObserverScrollInterface
         maxTraceCount = maxTraceCount ?? 50;
 
   /// if [hasMultiChild] is true, it should create [_MultiChildObserver]
-  /// to observe multi children whose ancestor [RenderSliver] is [sliver]
-  /// if [hasMultiChild] is false, it should create [_SingleChildObserver]
-  /// to observer the only [sliver] self
+  /// to observe multi children whose ancestor [RenderSliver] is [sliver].
   ///
-  /// currently we could not know if the [sliver] has multi child or not in advance
+  /// if [hasMultiChild] is false, it should create [_SingleChildObserver]
+  /// to observer the only [sliver] self.
+  ///
+  /// currently we could not know if the [sliver] has multi child or not in advance,
   /// so it is the responsibility of users to specify the [hasMultiChild] parameter correctly
-  /// when creating a [ScrollObserver]
+  /// when creating a [ScrollObserver].
+  ///
   /// if [hasMultiChild] does not match the type of [sliver]: [RenderObjectWithChildMixin]
-  /// or [ContainerRenderObjectMixin], it would may result in unexpected behavior
+  /// or [ContainerRenderObjectMixin], it may result in unexpected behavior.
   ///
   /// See also:
   ///   * [PositionedScrollController], which allows users to manage their [ScrollObserver] conveniently
@@ -88,10 +90,10 @@ abstract class ScrollObserver extends ObserverScrollInterface
 
   int? _itemCount;
 
-  /// [itemCount] is not required if you intentionally creates an infinite scrolling list/grid
-  /// if you ensure the list/grid has a finite [itemCount], it should not be null
-  /// and also must be consistent to the itemCount of list/grid
-  /// [itemCount] would have no effects for [ScrollObserver.singleChild]
+  /// [itemCount] is not required if you intentionally creates an infinite scrolling list/grid.
+  /// if you ensure the list/grid has a finite [itemCount], it should not be null,
+  /// and also must be consistent to the itemCount of list/grid.
+  /// [itemCount] would have no effects for [ScrollObserver.singleChild].
   int? get itemCount => _itemCount;
   set itemCount(int? value) {
     if (_itemCount != value) {
@@ -101,31 +103,31 @@ abstract class ScrollObserver extends ObserverScrollInterface
 
   /// [maxTraceCount] is used when:
   ///
-  /// 1) [RenderObserverProxy] try to find its closest [RenderSliver] and [SliverMultiBoxAdaptorParentData]
-  /// since there are many other [RenderObject] between its closest [RenderSliver] and [RenderObserverProxy]
-  /// so we use [maxTraceCount] to guarantee not going into an infinite loop
+  /// 1) [RenderObserverProxy] try to find its closest [RenderSliver] and [SliverMultiBoxAdaptorParentData],
+  /// since there are many other [RenderObject] between its closest [RenderSliver] and [RenderObserverProxy],
+  /// so we use [maxTraceCount] to guarantee not going into an infinite loop.
   ///
-  /// 2) [showInViewport] to find its closest [RenderViewportBase]
+  /// 2) [showInViewport] to find its closest [RenderViewportBase].
   ///
-  /// By using [maxTraceCount], we would try to find the target no more than [maxTraceCount] loop times
-  /// instead of using a while-loop that might be infinite for some rare error usage
+  /// By using [maxTraceCount], we would try to find the target no more than [maxTraceCount] loop times,
+  /// instead of using a while-loop that might be infinite for some rare error usage.
   int maxTraceCount;
 
-  /// [sliver] is the [RenderSliver] that is observed by this [ScrollObserver]
-  /// [sliver] would be the [RenderSliver] closest to [RenderObserverProxy]
-  /// if [sliver] is null, this observer should not be [isActive]
+  /// [sliver] is the [RenderSliver] that is observed by this [ScrollObserver].
+  /// [sliver] would be the [RenderSliver] closest to [RenderObserverProxy].
+  /// if [sliver] is null, this observer should not be [isActive].
   RenderSliver? _sliver;
   @protected
   RenderSliver? get sliver => _sliver;
 
-  /// invoking in [RenderObserverProxy.performLayout] to tell [ScrollObserver] the size of the item
-  /// if [sliver] changes, marking [_shouldUpdateOffset] as true
-  /// to indicate [ScrollObserver] requires updating [origin]
-  /// for [_MultiChildObserver], [parentData] must be [SliverMultiBoxAdaptorParentData]
-  /// for [_SingleChildObserver], [parentData] is useless
+  /// invoking in [RenderObserverProxy.performLayout] to tell [ScrollObserver] the size of the item.
+  /// if [sliver] changes, marking [_shouldUpdateOffset] as true,
+  /// to indicate [ScrollObserver] requires updating [origin].
+  /// for [_MultiChildObserver], [parentData] must be [SliverMultiBoxAdaptorParentData].
+  /// for [_SingleChildObserver], [parentData] is useless.
   ///
-  /// as long as [onLayout] is invoked for at least one item, marking [_shouldDoFinishLayout] is true
-  /// by doing so, we could invoke [doFinishLayout] on time and reduce unnecessary invocations for [doFinishLayout]
+  /// as long as [onLayout] is invoked for at least one item, marking [_shouldDoFinishLayout] is true.
+  /// By doing so, we could invoke [doFinishLayout] on time and reduce unnecessary invocations for [doFinishLayout].
   ///
   /// See:
   ///   * [_MultiChildObserver.onLayout]
@@ -146,12 +148,12 @@ abstract class ScrollObserver extends ObserverScrollInterface
 
   bool _shouldDoFinishLayout = false;
 
-  /// [doFinishLayout] would be invoked by [RenderObserverProxy] when painting
-  /// [_shouldDoFinishLayout] is set as true when [onLayout] is invoked
-  /// however, once [doFinishLayout] is executed, [_shouldDoFinishLayout] must be set as false
-  /// to avoid redundant invocations for those items that are laid out in the same frame
+  /// [doFinishLayout] would be invoked by [RenderObserverProxy] when painting.
+  /// [_shouldDoFinishLayout] is set as true when [onLayout] is invoked.
+  /// However, once [doFinishLayout] is executed, [_shouldDoFinishLayout] must be set as false,
+  /// avoiding redundant invocations for those items that are laid out in the same frame.
   ///
-  /// [doFinishLayout] should setup [ItemScrollExtent] for each item attached to the same [sliver]
+  /// [doFinishLayout] should setup [ItemScrollExtent] for each item attached to the same [sliver].
   ///
   /// See also:
   ///   * [_MultiChildObserver.doFinishLayout], which setup for multi items that have been laid out
@@ -171,10 +173,10 @@ abstract class ScrollObserver extends ObserverScrollInterface
 
   bool get scheduledOffsetUpdate => _scheduledOffsetUpdate;
 
-  /// the global offset relative to [sliver]'s parent [RenderViewportBase]
+  /// the global offset relative to [sliver]'s parent [RenderViewportBase].
   /// [estimateScrollOffset] may use [origin] to convert
   /// the local scroll offset (item relative to [sliver]) to
-  /// the global scroll offset (item relative to [RenderViewportBase])
+  /// the global scroll offset (item relative to [RenderViewportBase]).
   RevealedOffset? _origin;
   @protected
   RevealedOffset get origin {
@@ -183,20 +185,20 @@ abstract class ScrollObserver extends ObserverScrollInterface
     return _origin!;
   }
 
-  /// updating the global offset relative to [sliver]'s closest [RenderViewportBase]
+  /// updating the global offset relative to [sliver]'s closest [RenderViewportBase].
   ///
   /// however, if the [RenderViewportBase] is the ancestor of [sliver],
-  /// [RenderViewportBase.getOffsetToReveal] may access the intermediate [RenderSliver]'s [SliverGeometry] that may not be ready
-  /// since the parent [RenderSliver] would set its geometry only after its child/children are laid out
+  /// [RenderViewportBase.getOffsetToReveal] may access the intermediate [RenderSliver]'s [SliverGeometry] that may not be ready,
+  /// since the parent [RenderSliver] would set its geometry only after its child/children are laid out.
   ///
   /// consequently, the [sliver]'s geometry is ready, while the intermediate [RenderSliver]
-  /// between [sliver] and [RenderViewportBase] may not be ready
+  /// between [sliver] and [RenderViewportBase] may not be ready.
   ///
   /// therefore, we should catch the potential exception and schedule this updating later if happens
-  /// Particularly, [scheduleMicrotask] is only executed as soon s possible
-  /// so we could not guarantee [_updateSliverOffset] would complete before [SchedulePhase.postFrameCallback]
+  /// Particularly, [scheduleMicrotask] is only executed as soon s possible, and as a result of that,
+  /// we could not guarantee [_updateSliverOffset] would complete before [SchedulePhase.postFrameCallback]
   ///
-  /// if [firstLayoutFinished] is true, we could assert [_updateSliverOffset] is done successfully
+  /// if [firstLayoutFinished] is true, we could assert [_updateSliverOffset] is done successfully.
   void _updateSliverOffset() {
     assert(sliver != null);
 
@@ -245,15 +247,15 @@ abstract class ScrollObserver extends ObserverScrollInterface
     );
   }
 
-  /// for [ScrollObserver.singleChild], it would just return [sliverVisible]
+  /// for [ScrollObserver.singleChild], it would just return [sliverVisible].
   ///
-  /// for [ScrollObserver.multiChild]
-  /// [index] would be first [normalizeIndex] to ensure its valid, if [shouldNormalized]
-  /// [index] would keep unchanged if not [shouldNormalized]
+  /// for [ScrollObserver.multiChild],
+  /// [index] would be first [normalizeIndex] to ensure its valid, if [shouldNormalized].
+  /// [index] would keep unchanged if not [shouldNormalized].
   ///
   /// [PredicatorStrategy] is used to compare the visible ratio of the item
   /// relative to [SliverConstraints.viewportMainAxisExtent]
-  /// so as to determine if the item should be regarded as visible/revealed
+  /// so as to determine if the item should be regarded as visible/revealed.
   ///
   /// See also:
   ///   * [ScrollExtent], which describes the current [ScrollPosition] information
@@ -279,6 +281,7 @@ abstract class ScrollObserver extends ObserverScrollInterface
     }
 
     final sliverConstraints = sliver!.constraints;
+
     final leadingOffset = origin.offset + itemScrollModel.mainAxisOffset;
 
     final double trailingOffset;
@@ -292,8 +295,9 @@ abstract class ScrollObserver extends ObserverScrollInterface
         break;
     }
 
-    final trailingEdge =
-        scrollExtent.current + sliverConstraints.viewportMainAxisExtent;
+    final trailingEdge = scrollExtent.current +
+        sliverConstraints.viewportMainAxisExtent -
+        sliverConstraints.overlap;
 
     return OnstagePredicator.predict(
       leadingOffset,
@@ -540,12 +544,12 @@ class _MultiChildObserver extends ScrollObserver {
     }
   }
 
-  /// 1) if we could find [ItemScrollModel] for [target], it turns out [target] has been laid out
-  /// so we could use [origin] to estimate [target]'s scroll offset (actually it would be the accurate offset)
+  /// 1) if we could find [ItemScrollModel] for [target], it turns out [target] has been laid out,
+  /// so we could use [origin] to estimate [target]'s scroll offset (actually it would be the accurate offset).
   ///
-  /// 2) if [target] is less than [_first], we should go the previous page based on [_first]'s [ItemScrollModel]
-  /// 3) if [target] is greater than [_last], we should go the next page based on [_last]'s [ItemScrollModel]
-  /// the page offset is estimated as [_estimatedAveragePageGap] that is frequently updated during [onFinishLayout]
+  /// 2) if [target] is less than [_first], we should go the previous page based on [_first]'s [ItemScrollModel].
+  /// 3) if [target] is greater than [_last], we should go the next page based on [_last]'s [ItemScrollModel].
+  /// the page offset is estimated as [_estimatedAveragePageGap] that is frequently updated during [onFinishLayout].
   @override
   double estimateScrollOffset(
     int target, {

@@ -39,8 +39,8 @@ class ScrollExtent {
       ("ScrollExtent(min: $min, max: $max, current: $current)");
 }
 
-/// [ItemScrollExtent.multi] is for items who have an ancestor [RenderSliver] that has multi child
-/// [ItemScrollExtent.single] is for the item who has an ancestor [RenderSliver] that only has on child
+/// [ItemScrollExtent.multi] is for items who have an ancestor [RenderSliver] that has multi child.
+/// [ItemScrollExtent.single] is for the item who has an ancestor [RenderSliver] that only has on child.
 class ItemScrollExtent {
   final int index;
   final double mainAxisOffset;

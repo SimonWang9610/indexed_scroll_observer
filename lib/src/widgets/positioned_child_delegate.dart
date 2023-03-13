@@ -93,8 +93,8 @@ class PositionedChildBuilderDelegate extends SliverPositionedProxyDelegate {
       oldDelegate.builder != builder || childCount != oldDelegate.childCount;
 }
 
-/// This class extends [SliverChildDelegate] to allow users to wrap their items conveniently
-/// only when [addProxy] is true and [observer] is null, item widgets would be wrapped in [ObserverProxy]
+/// This class extends [SliverChildDelegate] to allow users to wrap their items conveniently.
+/// only when [addProxy] is true and [observer] is null, item widgets would be wrapped in [ObserverProxy].
 abstract class SliverPositionedProxyDelegate extends SliverChildDelegate {
   final bool addAutomaticKeepAlives;
   final bool addRepaintBoundaries;

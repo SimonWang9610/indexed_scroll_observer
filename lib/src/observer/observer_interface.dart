@@ -18,28 +18,28 @@ abstract class ObserverScrollInterface {
   /// if this observer is observing multi children for a [RenderSliver]
   bool get hasMultiChild;
 
-  /// if some children have been laid out completely
-  /// indicates some required information to estimate scroll offset for a certain item is ready to use
-  /// if [firstLayoutFinished] is false, it would throw errors to report illegal usage
+  /// if some children have been laid out completely,
+  /// it indicates some required information to estimate scroll offset for a certain item is ready to use.
+  /// if [firstLayoutFinished] is false, it would throw errors to report illegal usage.
   bool get firstLayoutFinished;
 
   /// if the observing [RenderSliver] is visible in its closest ancestor [RenderViewportBase]
   bool get sliverVisible;
 
-  /// if a [RenderSliver] is being observed by this observer
-  /// if false, it would throw errors to report illegal usage
-  /// only when [isActive] is true, the observer could work normally
+  /// indicates whether a [RenderSliver] is being observed by this observer.
+  /// If false, it would throw errors to report illegal usage,
+  /// only when [isActive] is true, the observer could work normally.
   bool get isActive;
 
-  /// this observer should start observing the [RenderObserverProxy]
+  /// whether this observer should start observing the [RenderObserverProxy].
   /// typically, it should be true
   bool _observing = true;
   bool get isObserving => _observing;
 
-  /// sometimes, [ObserverProxy] may not be descendants of [RenderSliver] temporarily
-  /// e.g., [ReorderableListView] is ordering
-  /// using [pause] to stop observing temporarily
-  /// using [resume] to continue observing
+  /// sometimes, [ObserverProxy] may not be descendants of [RenderSliver] temporarily,
+  /// e.g., [ReorderableListView] is ordering.
+  /// using [pause] to stop observing temporarily.
+  /// using [resume] to continue observing.
   void pause() {
     _observing = false;
   }
@@ -48,22 +48,22 @@ abstract class ObserverScrollInterface {
     _observing = true;
   }
 
-  /// sometimes, the target index to which users want to scroll may not be same as the current render index
-  /// by using [targetToRenderIndex], users could define how to map the target index to a render index
-  /// sometimes, the render index may not be the target index to which users want to scroll
-  /// by setting [renderToTargetIndex], users could define how to convert the render index to the target index
-  ///
-  /// e.g., when using [ListView.separated], the item index may not be equal to its render index
-  /// since separators would be also counted as the children of [RenderSliver]
+  /// sometimes, the target index to which users want to scroll may not be same as the current render index,
+  /// by using [targetToRenderIndex], users could define how to map the target index to a render index.
+
+  /// e.g., when using [ListView.separated], the item index may not be equal to its render index,
+  /// since separators would be also counted as the children of [RenderSliver].
   ///
   /// e.g., when using [ReorderableListView], items may be reordered, as a result, the target index may not be
-  /// same as its render index
+  /// same as its render index.
   ///
-  /// by setting [targetToRenderIndex] and [renderToTargetIndex], users could have better control
+  /// By setting [targetToRenderIndex] and [renderToTargetIndex], users could have better control.
   /// [jumpToIndex]/[animateToIndex] may use [targetToRenderIndex] if applicable before doing normalized;
   /// when checking those revealed items, [renderToTargetIndex] may be used
   IndexConverter? targetToRenderIndex;
 
+  /// sometimes, the render index may not be the target index to which users want to scroll.
+  /// by setting [renderToTargetIndex], users could define how to convert the render index to the target index.
   IndexConverter? renderToTargetIndex;
 
   /// make the observed [RenderSliver] visible in its closest ancestor [RenderViewportBase]
@@ -73,14 +73,14 @@ abstract class ObserverScrollInterface {
     Curve curve = Curves.ease,
   });
 
-  /// if [index] is revealed in its closest ancestor [RenderSliver]
-  /// typically, [index] must have been observed before checking [isRevealed]
-  /// [strategy] is used to determine the threshold of which [index] should be regarded as revealed/visible
-  /// [shouldNormalized] indicates if we need to [normalizeIndex] into a valid range
-  /// [ScrollExtent] is the current scroll extent built from [ScrollPosition] to
-  /// indicate the current min/max scroll extent and pixels
-  /// if [shouldConvert] is true, it would try to use [targetToRenderIndex] to convert [index] to its render index
-  /// [shouldConvert] is always false when using internally for [jumpToIndex] and [animateToIndex]
+  /// if [index] is revealed in its closest ancestor [RenderSliver].
+  /// typically, [index] must have been observed before checking [isRevealed].
+  /// [strategy] is used to determine the threshold of which [index] should be regarded as revealed/visible.
+  /// [shouldNormalized] indicates if we need to [normalizeIndex] into a valid range.
+  /// [ScrollExtent] is the current scroll extent built from [ScrollPosition] to.
+  /// indicate the current min/max scroll extent and pixels.
+  /// if [shouldConvert] is true, it would try to use [targetToRenderIndex] to convert [index] to its render index.
+  /// [shouldConvert] is always false when using internally for [jumpToIndex] and [animateToIndex].
   bool isRevealed(
     int index, {
     required ScrollExtent scrollExtent,
@@ -89,9 +89,9 @@ abstract class ObserverScrollInterface {
     bool shouldConvert = false,
   });
 
-  /// estimate the scroll offset for [target]
-  /// if [target] has been observed, it should return the observed scroll offset
-  /// if not, it would use some other information to estimate the scroll offset for [target]
+  /// estimate the scroll offset for [target].
+  /// if [target] has been observed, it should return the observed scroll offset.
+  /// if not, it would use some other information to estimate the scroll offset for [target].
   /// See:
   ///   * [ScrollObserver.singleChild], which implements how to do estimation for slivers with single child
   ///   * [ScrollObserver.multiChild], which implements how to do estimation for slivers with multi children
@@ -101,7 +101,7 @@ abstract class ObserverScrollInterface {
   });
 
   /// normalize [index] to a valid range.
-  /// typically for a [ScrollObserver] with a finite item count
+  /// typically for a [ScrollObserver] with a finite item count.
   /// See:
   ///   * [ScrollObserver.singleChild]
   ///   * [ScrollObserver.multiChild]
@@ -143,9 +143,9 @@ mixin ObserverScrollImpl on ObserverScrollInterface {
     renderToTargetIndex = null;
   }
 
-  /// jump to [index] based on the given [position]
-  /// this [ScrollObserver] and [position] should be associated/attached to the same [ScrollController]
-  /// if [closeToEdge] is true, we would try scrolling [index] to the edge of [ScrollView.reverse] if not over scrolling
+  /// jump to [index] based on the given [position].
+  /// this [ScrollObserver] and [position] should be associated/attached to the same [ScrollController].
+  /// if [closeToEdge] is true, we would try scrolling [index] to the edge of [ScrollView.reverse] if not over scrolling.
   void jumpToIndex(
     int index, {
     required ScrollPosition position,
@@ -162,13 +162,13 @@ mixin ObserverScrollImpl on ObserverScrollInterface {
 
   Completer<bool>? _revealing;
 
-  /// animate to [index] based on the given [position]
+  /// animate to [index] based on the given [position].
   ///
-  /// if a revealing task  is ongoing, schedule and execute this task once the previous task is completed
-  /// by doing so, we could avoid multi revealing tasks ongoing
-  /// the returned result indicates if all chained tasks are completed successfully
+  /// if a revealing task  is ongoing, schedule and execute this task once the previous task is completed.
+  /// by doing so, we could avoid multi revealing tasks ongoing.
+  /// the returned result indicates if all chained tasks are completed successfully.
   ///
-  /// this [ScrollObserver] and [position] should be associated/attached to the same [ScrollController]
+  /// this [ScrollObserver] and [position] should be associated/attached to the same [ScrollController].
   /// if [closeToEdge] is true, we would try scrolling [index] to the edge of [ScrollView.reverse] if not over scrolling
   Future<bool> animateToIndex(
     int index, {
