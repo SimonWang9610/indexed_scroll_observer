@@ -132,9 +132,9 @@ class _OfficialSeparatedListExampleState
 
   final ScrollController _controller = ScrollController();
   late final ScrollObserver _observer = ScrollObserver.multiChild(
-    itemCount: _itemCount,
+    itemCount: _computeActualChildCount(_itemCount),
   )
-    ..targetToRenderIndex = _toTargetIndex
+    ..targetToRenderIndex = _toRenderIndex
     ..renderToTargetIndex = _toTargetIndex;
 
   @override
@@ -191,25 +191,29 @@ class _OfficialSeparatedListExampleState
             },
           ),
           Expanded(
-            child: PositionedListView.separated(
+            child: ListView.separated(
               controller: _controller,
-              itemBuilder: (_, index) => ListTile(
-                // key: ValueKey<int>(index),
-                leading: const CircleAvatar(
-                  child: Text("L"),
+              itemBuilder: (_, index) => ObserverProxy(
+                observer: _observer,
+                child: ListTile(
+                  leading: const CircleAvatar(
+                    child: Text("L"),
+                  ),
+                  title: Text("Positioned List Example $index"),
                 ),
-                title: Text("Positioned List Example $index"),
               ),
               separatorBuilder: (_, index) {
-                return Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 5),
-                  child: Center(
-                    child: Text("--Separator $index--"),
+                return ObserverProxy(
+                  observer: _observer,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 5),
+                    child: Center(
+                      child: Text("--Separator $index--"),
+                    ),
                   ),
                 );
               },
               itemCount: _itemCount,
-              observer: _observer,
             ),
           ),
         ],
@@ -231,13 +235,13 @@ class _OfficialSeparatedListExampleState
 
   void _addItem() {
     _itemCount++;
-    _observer.itemCount = _itemCount;
+    _observer.itemCount = _computeActualChildCount(_itemCount);
     setState(() {});
   }
 
   void _deleteItem() {
     _itemCount = max(--_itemCount, 0);
-    _observer.itemCount = _itemCount;
+    _observer.itemCount = _computeActualChildCount(_itemCount);
 
     setState(() {});
   }
@@ -245,4 +249,8 @@ class _OfficialSeparatedListExampleState
   int _toRenderIndex(int index) => index * 2;
 
   int _toTargetIndex(int renderIndex) => renderIndex ~/ 2;
+
+  int _computeActualChildCount(int count) {
+    return max(0, count * 2 - 1);
+  }
 }

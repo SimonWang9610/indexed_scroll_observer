@@ -45,18 +45,10 @@ class _MyHomePageState extends State<MyHomePage> {
             OutlinedButton(
               onPressed: () {
                 context.push(
-                  const PositionedListExample(),
-                );
-              },
-              child: const Text("Encapsulated List Usage"),
-            ),
-            OutlinedButton(
-              onPressed: () {
-                context.push(
                   const OfficialListExample(),
                 );
               },
-              child: const Text("Official List Usage"),
+              child: const Text("List view Usage"),
             ),
             OutlinedButton(
               onPressed: () {
@@ -64,23 +56,15 @@ class _MyHomePageState extends State<MyHomePage> {
                   const OfficialReorderableListExample(),
                 );
               },
-              child: const Text("Official Reorderable List Usage"),
+              child: const Text("Reorderable List Usage"),
             ),
             OutlinedButton(
               onPressed: () {
                 context.push(
-                  const SeparatedPositionedListExample(),
+                  const OfficialSeparatedListExample(),
                 );
               },
-              child: const Text("Encapsulated Separated List Usage"),
-            ),
-            OutlinedButton(
-              onPressed: () {
-                context.push(
-                  const SeparatedPositionedListExample(),
-                );
-              },
-              child: const Text("Official Separated List Usage"),
+              child: const Text("Separated List Usage"),
             ),
             OutlinedButton(
               onPressed: () {
