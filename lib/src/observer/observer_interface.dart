@@ -7,6 +7,8 @@ import 'package:flutter/widgets.dart';
 import 'scroll_extent.dart';
 import 'onstage_strategy.dart';
 
+typedef IndexConverter = int Function(int);
+
 abstract class ObserverScrollInterface {
   /// if this observer is observing multi children for a [RenderSliver]
   bool get hasMultiChild;
@@ -24,6 +26,41 @@ abstract class ObserverScrollInterface {
   /// only when [isActive] is true, the observer could work normally
   bool get isActive;
 
+  /// this observer should start observing the [RenderObserverProxy]
+  /// typically, it should be true
+  bool _observing = true;
+  bool get isObserving => _observing;
+
+  /// sometimes, [ObserverProxy] may not be descendants of [RenderSliver] temporarily
+  /// e.g., [ReorderableListView] is ordering
+  /// using [pause] to stop observing temporarily
+  /// using [resume] to continue observing
+  void pause() {
+    _observing = false;
+  }
+
+  void resume() {
+    _observing = true;
+  }
+
+  /// sometimes, the target index to which users want to scroll may not be same as the current render index
+  /// by using [targetToRenderIndex], users could define how to map the target index to a render index
+  /// sometimes, the render index may not be the target index to which users want to scroll
+  /// by setting [renderToTargetIndex], users could define how to convert the render index to the target index
+  ///
+  /// e.g., when using [ListView.separated], the item index may not be equal to its render index
+  /// since separators would be also counted as the children of [RenderSliver]
+  ///
+  /// e.g., when using [ReorderableListView], items may be reordered, as a result, the target index may not be
+  /// same as its render index
+  ///
+  /// by setting [targetToRenderIndex] and [renderToTargetIndex], users could have better control
+  /// [jumpToIndex]/[animateToIndex] may use [targetToRenderIndex] if applicable before doing normalized;
+  /// when checking those revealed items, [renderToTargetIndex] may be used
+  IndexConverter? targetToRenderIndex;
+
+  IndexConverter? renderToTargetIndex;
+
   /// make the observed [RenderSliver] visible in its closest ancestor [RenderViewportBase]
   void showInViewport(
     ViewportOffset offset, {
@@ -37,6 +74,8 @@ abstract class ObserverScrollInterface {
   /// [shouldNormalized] indicates if we need to [normalizeIndex] into a valid range
   /// [ScrollExtent] is the current scroll extent built from [ScrollPosition] to
   /// indicate the current min/max scroll extent and pixels
+  /// [indexConverter] is used to convert the [RenderObserverProxy]'s index to the specify index
+  /// if null, it would
   bool isRevealed(
     int index, {
     required ScrollExtent scrollExtent,
@@ -98,6 +137,9 @@ mixin ObserverScrollImpl on ObserverScrollInterface {
       _revealing?.complete(false);
     }
     _revealing = null;
+    _observing = false;
+    targetToRenderIndex = null;
+    renderToTargetIndex = null;
   }
 
   /// jump to [index] based on the given [position]
@@ -108,6 +150,8 @@ mixin ObserverScrollImpl on ObserverScrollInterface {
     required ScrollPosition position,
     bool closeToEdge = true,
   }) {
+    index = targetToRenderIndex?.call(index) ?? index;
+
     _jumpToUnrevealedIndex(
       index,
       position: position,
@@ -132,6 +176,8 @@ mixin ObserverScrollImpl on ObserverScrollInterface {
     required Curve curve,
     bool closeToEdge = true,
   }) async {
+    index = targetToRenderIndex?.call(index) ?? index;
+
     if (_revealing != null && !_revealing!.isCompleted) {
       return _revealing!.future.then(
         (canSchedule) {

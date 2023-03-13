@@ -79,12 +79,10 @@ abstract class ScrollObserver extends ObserverScrollInterface
   /// create a [ScrollObserver] that observes a [RenderSliver] with single child
   factory ScrollObserver.singleChild({
     String? label,
-    int? itemCount,
     int? maxTraceCount,
   }) =>
       _SingleChildObserver(
         label: label,
-        itemCount: itemCount,
         maxTraceCount: maxTraceCount,
       );
 
@@ -93,6 +91,7 @@ abstract class ScrollObserver extends ObserverScrollInterface
   /// [itemCount] is not required if you intentionally creates an infinite scrolling list/grid
   /// if you ensure the list/grid has a finite [itemCount], it should not be null
   /// and also must be consistent to the itemCount of list/grid
+  /// [itemCount] would have no effects for [ScrollObserver.singleChild]
   int? get itemCount => _itemCount;
   set itemCount(int? value) {
     if (_itemCount != value) {
@@ -201,7 +200,7 @@ abstract class ScrollObserver extends ObserverScrollInterface
   void _updateSliverOffset() {
     assert(sliver != null);
 
-    if (_shouldUpdateOffset) {
+    if (_shouldUpdateOffset && isObserving) {
       try {
         final viewport = ObserverUtil.findClosestViewport(sliver!);
 
@@ -381,7 +380,7 @@ class _SingleChildObserver extends ScrollObserver {
   void doFinishLayout() {
     super.doFinishLayout();
 
-    if (_shouldDoFinishLayout) {
+    if (_shouldDoFinishLayout && isObserving) {
       assert(_size != null,
           "The size of child should be observed before finishing layout");
       _itemScrollExtent = ItemScrollExtent.empty();
@@ -494,7 +493,7 @@ class _MultiChildObserver extends ScrollObserver {
             SliverMultiBoxAdaptorParentData>,
         "${sliver.runtimeType} does not contain multi box-based children");
 
-    if (_shouldDoFinishLayout) {
+    if (_shouldDoFinishLayout && isObserving) {
       RenderBox? child = (sliver as RenderSliverMultiBoxAdaptor).firstChild;
 
       double totalExtent = 0;
@@ -620,7 +619,7 @@ class _MultiChildObserver extends ScrollObserver {
 
     for (final key in _items.keys) {
       if (isRevealed(key, scrollExtent: scrollExtent, strategy: strategy)) {
-        onstageItems.add(key);
+        onstageItems.add(renderToTargetIndex?.call(key) ?? key);
       }
     }
 

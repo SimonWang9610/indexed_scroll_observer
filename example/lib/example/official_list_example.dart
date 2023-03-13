@@ -4,22 +4,24 @@ import 'package:flutter/material.dart';
 import 'package:positioned_scroll_observer/positioned_scroll_observer.dart';
 import 'sliver_jump.dart';
 
-class PositionedListExample extends StatefulWidget {
-  const PositionedListExample({super.key});
+class OfficialListExample extends StatefulWidget {
+  const OfficialListExample({super.key});
 
   @override
-  State<PositionedListExample> createState() => _PositionedListExampleState();
+  State<OfficialListExample> createState() => _OfficialListExampleState();
 }
 
-class _PositionedListExampleState extends State<PositionedListExample> {
+class _OfficialListExampleState extends State<OfficialListExample> {
   int _itemCount = 30;
 
-  final PositionedScrollController _controller =
-      PositionedScrollController.singleObserver();
+  final ScrollController _controller = ScrollController();
+  late final ScrollObserver _observer =
+      ScrollObserver.multiChild(itemCount: _itemCount);
 
   @override
   void dispose() {
     _controller.dispose();
+    _observer.clear();
     super.dispose();
   }
 
@@ -52,39 +54,46 @@ class _PositionedListExampleState extends State<PositionedListExample> {
           SliverJumpWidget(
             label: "without animation",
             onJump: (index) {
-              _controller.jumpToIndex(index);
+              _observer.jumpToIndex(
+                index,
+                position: _controller.position,
+              );
             },
           ),
           SliverJumpWidget(
             label: "animation",
             onJump: (index) {
-              _controller.animateToIndex(
+              _observer.animateToIndex(
                 index,
+                position: _controller.position,
                 duration: const Duration(milliseconds: 200),
                 curve: Curves.fastLinearToSlowEaseIn,
               );
             },
           ),
           Expanded(
-            child: PositionedListView.builder(
+            child: ListView.builder(
               controller: _controller,
-              itemBuilder: (context, index) => ListTile(
-                key: ValueKey<int>(index),
-                leading: const CircleAvatar(
-                  child: Text("L"),
+              itemBuilder: (context, index) => ObserverProxy(
+                observer: _observer,
+                child: ListTile(
+                  key: ValueKey<int>(index),
+                  leading: const CircleAvatar(
+                    child: Text("L"),
+                  ),
+                  title: Text("Positioned List Example $index"),
                 ),
-                title: Text("Positioned List Example $index"),
               ),
               itemCount: _itemCount,
-              observer:
-                  _controller.createOrObtainObserver(itemCount: _itemCount),
             ),
           )
         ],
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          _controller.debugCheckOnstageItems();
+          _observer.debugCheckOnstageItems(
+            scrollExtent: ScrollExtent.fromPosition(_controller.position),
+          );
         },
         child: const Icon(Icons.visibility_off_rounded),
       ),
@@ -92,34 +101,48 @@ class _PositionedListExampleState extends State<PositionedListExample> {
   }
 
   void _goStart() {
-    _controller.showInViewport();
+    _observer.showInViewport(_controller.position);
   }
 
   void _addItem() {
     _itemCount++;
+    _observer.itemCount = _itemCount;
     setState(() {});
   }
 
   void _deleteItem() {
     _itemCount = max(--_itemCount, 0);
+    _observer.itemCount = _itemCount;
+
     setState(() {});
   }
 }
 
-class SeparatedPositionedListExample extends StatefulWidget {
-  const SeparatedPositionedListExample({super.key});
+class OfficialSeparatedListExample extends StatefulWidget {
+  const OfficialSeparatedListExample({super.key});
 
   @override
-  State<SeparatedPositionedListExample> createState() =>
-      _SeparatedPositionedListExampleState();
+  State<OfficialSeparatedListExample> createState() =>
+      _OfficialSeparatedListExampleState();
 }
 
-class _SeparatedPositionedListExampleState
-    extends State<SeparatedPositionedListExample> {
+class _OfficialSeparatedListExampleState
+    extends State<OfficialSeparatedListExample> {
   int _itemCount = 30;
 
-  final PositionedScrollController _controller =
-      PositionedScrollController.singleObserver();
+  final ScrollController _controller = ScrollController();
+  late final ScrollObserver _observer = ScrollObserver.multiChild(
+    itemCount: _itemCount,
+  )
+    ..targetToRenderIndex = _toTargetIndex
+    ..renderToTargetIndex = _toTargetIndex;
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    _observer.clear();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -150,14 +173,18 @@ class _SeparatedPositionedListExampleState
           SliverJumpWidget(
             label: "without animation",
             onJump: (index) {
-              _controller.jumpToIndex(index);
+              _observer.jumpToIndex(
+                index,
+                position: _controller.position,
+              );
             },
           ),
           SliverJumpWidget(
             label: "animation",
             onJump: (index) {
-              _controller.animateToIndex(
+              _observer.animateToIndex(
                 index,
+                position: _controller.position,
                 duration: const Duration(milliseconds: 200),
                 curve: Curves.fastLinearToSlowEaseIn,
               );
@@ -182,18 +209,16 @@ class _SeparatedPositionedListExampleState
                 );
               },
               itemCount: _itemCount,
-              observer: _controller.createOrObtainObserver(
-                itemCount: _itemCount,
-                targetToRenderIndex: _toRenderIndex,
-                renderToTargetIndex: _toTargetIndex,
-              ),
+              observer: _observer,
             ),
           ),
         ],
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          _controller.debugCheckOnstageItems();
+          _observer.debugCheckOnstageItems(
+            scrollExtent: ScrollExtent.fromPosition(_controller.position),
+          );
         },
         child: const Icon(Icons.visibility_off_rounded),
       ),
@@ -201,16 +226,19 @@ class _SeparatedPositionedListExampleState
   }
 
   void _goStart() {
-    _controller.showInViewport();
+    _observer.showInViewport(_controller.position);
   }
 
   void _addItem() {
     _itemCount++;
+    _observer.itemCount = _itemCount;
     setState(() {});
   }
 
   void _deleteItem() {
     _itemCount = max(--_itemCount, 0);
+    _observer.itemCount = _itemCount;
+
     setState(() {});
   }
 

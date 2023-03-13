@@ -19,6 +19,11 @@ class _PositionedGridExampleState extends State<PositionedGridExample> {
       PositionedScrollController.singleObserver();
 
   final String observerKey = "grid";
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {

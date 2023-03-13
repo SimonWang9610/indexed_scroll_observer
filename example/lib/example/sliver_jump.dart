@@ -31,7 +31,7 @@ class _SliverJumpWidgetState extends State<SliverJumpWidget> {
             controller: _controller,
             decoration: InputDecoration(
               border: const OutlineInputBorder(),
-              hintText: "Jump on ${widget.label}",
+              hintText: widget.label,
               suffixIcon: IconButton(
                 onPressed: () {
                   final index = int.tryParse(_controller.text);

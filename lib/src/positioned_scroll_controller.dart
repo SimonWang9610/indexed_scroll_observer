@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/widgets.dart';
+import 'package:positioned_scroll_observer/src/observer/observer_interface.dart';
 import 'observer/scroll_observer.dart';
 
 import 'observer/scroll_extent.dart';
@@ -94,8 +95,14 @@ abstract class PositionedScrollController extends ScrollController {
     String? observerKey,
     int? itemCount,
     int? maxTraceCount,
+    IndexConverter? targetToRenderIndex,
+    IndexConverter? renderToTargetIndex,
   }) {
-    final existedObserver = _obtainObserver(observerKey);
+    final existedObserver = _obtainObserver(
+      observerKey: observerKey,
+      targetToRenderIndex: targetToRenderIndex,
+      renderToTargetIndex: renderToTargetIndex,
+    );
 
     if (existedObserver != null &&
         existedObserver.hasMultiChild != hasMultiChild) {
@@ -121,6 +128,8 @@ abstract class PositionedScrollController extends ScrollController {
           observerKey: observerKey,
           itemCount: itemCount,
           maxTraceCount: maxTraceCount,
+          targetToRenderIndex: targetToRenderIndex,
+          renderToTargetIndex: renderToTargetIndex,
         );
   }
 
@@ -140,7 +149,7 @@ abstract class PositionedScrollController extends ScrollController {
     Duration duration = Duration.zero,
     Curve curve = Curves.ease,
   }) {
-    final observer = _obtainObserver(observerKey);
+    final observer = _obtainObserver(observerKey: observerKey);
 
     if (observer != null && observer.isActive) {
       observer.showInViewport(
@@ -159,7 +168,7 @@ abstract class PositionedScrollController extends ScrollController {
   /// if [ScrollView.reverse] is true, the leasing edge is the bottom of the viewport
   void jumpToIndex(int index,
       {String? whichObserver, bool closeToEdge = true}) {
-    final observer = _obtainObserver(whichObserver);
+    final observer = _obtainObserver(observerKey: whichObserver);
 
     if (observer != null) {
       observer.jumpToIndex(index, position: position);
@@ -184,7 +193,7 @@ abstract class PositionedScrollController extends ScrollController {
     bool closeToEdge = true,
     String? whichObserver,
   }) async {
-    final observer = _obtainObserver(whichObserver);
+    final observer = _obtainObserver(observerKey: whichObserver);
 
     if (observer != null) {
       return observer.animateToIndex(
@@ -198,16 +207,33 @@ abstract class PositionedScrollController extends ScrollController {
     }
   }
 
+  bool isVisible(int index, {String? whichObserver}) {
+    final observer = _obtainObserver(observerKey: whichObserver);
+
+    if (observer != null && observer.isActive) {
+      return observer.isRevealed(
+        index,
+        scrollExtent: ScrollExtent.fromPosition(position),
+      );
+    } else {
+      return false;
+    }
+  }
+
   ScrollObserver _createObserver({
     bool hasMultiChild = true,
     String? observerKey,
     int? itemCount,
     int? maxTraceCount,
+    IndexConverter? targetToRenderIndex,
+    IndexConverter? renderToTargetIndex,
   });
 
-  ScrollObserver? _obtainObserver([
+  ScrollObserver? _obtainObserver({
     String? observerKey,
-  ]);
+    IndexConverter? targetToRenderIndex,
+    IndexConverter? renderToTargetIndex,
+  });
 
   @protected
   void _clear();
@@ -231,6 +257,8 @@ class _MultiScrollController extends PositionedScrollController {
     String? observerKey,
     int? itemCount,
     int? maxTraceCount,
+    IndexConverter? targetToRenderIndex,
+    IndexConverter? renderToTargetIndex,
   }) {
     _checkObserverKey(observerKey);
 
@@ -246,16 +274,32 @@ class _MultiScrollController extends PositionedScrollController {
       maxTraceCount: maxTraceCount,
     );
 
+    observer.targetToRenderIndex = targetToRenderIndex;
+    observer.renderToTargetIndex = renderToTargetIndex;
+
     _observers[observerKey!] = observer;
     return observer;
   }
 
   @override
-  ScrollObserver? _obtainObserver([
+  ScrollObserver? _obtainObserver({
     String? observerKey,
-  ]) {
+    IndexConverter? targetToRenderIndex,
+    IndexConverter? renderToTargetIndex,
+  }) {
     _checkObserverKey(observerKey);
-    return _observers[observerKey];
+
+    final observer = _observers[observerKey];
+
+    if (targetToRenderIndex != null) {
+      observer?.targetToRenderIndex = targetToRenderIndex;
+    }
+
+    if (renderToTargetIndex != null) {
+      observer?.renderToTargetIndex = renderToTargetIndex;
+    }
+
+    return observer;
   }
 
   @override
@@ -348,6 +392,8 @@ class _SingleScrollController extends PositionedScrollController {
     String? observerKey,
     int? itemCount,
     int? maxTraceCount,
+    IndexConverter? targetToRenderIndex,
+    IndexConverter? renderToTargetIndex,
   }) {
     assert(
       _observer == null,
@@ -359,14 +405,26 @@ class _SingleScrollController extends PositionedScrollController {
       hasMultiChild: hasMultiChild,
       maxTraceCount: maxTraceCount,
     );
+    _observer!.renderToTargetIndex = renderToTargetIndex;
+    _observer!.targetToRenderIndex = targetToRenderIndex;
     return _observer!;
   }
 
   @override
-  ScrollObserver? _obtainObserver([
+  ScrollObserver? _obtainObserver({
     String? observerKey,
-  ]) =>
-      _observer;
+    IndexConverter? targetToRenderIndex,
+    IndexConverter? renderToTargetIndex,
+  }) {
+    if (targetToRenderIndex != null) {
+      _observer?.targetToRenderIndex = targetToRenderIndex;
+    }
+
+    if (renderToTargetIndex != null) {
+      _observer?.renderToTargetIndex = renderToTargetIndex;
+    }
+    return _observer;
+  }
 
   @override
   void _clear() {

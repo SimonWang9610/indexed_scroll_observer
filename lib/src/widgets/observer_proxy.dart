@@ -78,7 +78,8 @@ class RenderObserverProxy extends RenderProxyBox {
   set observer(ScrollObserver? newObserver) {
     if (_observer == newObserver) return;
     _observer = newObserver;
-    markNeedsPaint();
+    markNeedsLayout();
+    markNeedsSemanticsUpdate();
   }
 
   @override
@@ -102,14 +103,18 @@ class RenderObserverProxy extends RenderProxyBox {
   void paint(PaintingContext context, Offset offset) {
     super.paint(context, offset);
 
-    _observer?.doFinishLayout();
+    if (_observer != null && _observer!.isObserving) {
+      _observer!.doFinishLayout();
+    }
   }
 
   /// find the closest [RenderSliver] so that [_observer] could bind it when invoking [ScrollObserver.onLayout]
   /// typically, there might have other [RenderObject] between [RenderSliver] and [RenderObserverProxy]
   /// consequently, [parentData] may not be correct for [_observer] to collect [child]'s index and scroll offset
   RenderSliver? _findParentSliver() {
-    if (child == null || _observer == null) return null;
+    if (child == null || _observer == null || !_observer!.isObserving) {
+      return null;
+    }
 
     AbstractNode? parentSliver = parent;
 
@@ -126,11 +131,9 @@ class RenderObserverProxy extends RenderProxyBox {
     }
 
     assert(
-      parentSliver != null,
-      "Cannot find a [RenderObject] who has [SliverMultiBoxAdaptorParentData] "
-      "between its ancestors and $this during ${_observer!.maxTraceCount} times tracing"
-      "In future, custom max tracing depth would be supported.",
-    );
+        parentSliver != null,
+        "Cannot find a [RenderObject] who has [SliverMultiBoxAdaptorParentData] "
+        "between its ancestors and $this during ${_observer!.maxTraceCount} times tracing.");
 
     if (parentSliver == null || parentSliver is! RenderSliver) return null;
     return parentSliver;
