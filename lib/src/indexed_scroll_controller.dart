@@ -1,11 +1,10 @@
 import 'dart:async';
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
-import 'scroll_observer.dart';
+import 'observer/scroll_observer.dart';
 
-import 'scroll_extent.dart';
-import 'onstage_strategy.dart';
+import 'observer/scroll_extent.dart';
+import 'observer/onstage_strategy.dart';
 
 /// [IndexedScrollController] would extend the ability of [ScrollController]
 /// so that users could use [jumpToIndex] and [animateToIndex] to display a specific widget
@@ -91,6 +90,7 @@ abstract class IndexedScrollController extends ScrollController
     bool hasMultiChild = true,
     String? observerKey,
     int? itemCount,
+    int? maxTraceCount,
   }) {
     final existedObserver = _obtainObserver(observerKey);
 
@@ -107,11 +107,17 @@ abstract class IndexedScrollController extends ScrollController
       existedObserver?.itemCount = itemCount;
     }
 
+    if (existedObserver?.maxTraceCount != maxTraceCount &&
+        maxTraceCount != null) {
+      existedObserver?.maxTraceCount = maxTraceCount;
+    }
+
     return existedObserver ??
         _createObserver(
           hasMultiChild: hasMultiChild,
           observerKey: observerKey,
           itemCount: itemCount,
+          maxTraceCount: maxTraceCount,
         );
   }
 
@@ -128,10 +134,8 @@ abstract class IndexedScrollController extends ScrollController
   /// currently, such a case happens to [SliverAppBar]
   ///
 
-  ///
   void showInViewport({
     String? observerKey,
-    int maxTraceCount = 5,
     Duration duration = Duration.zero,
     Curve curve = Curves.ease,
   }) {
@@ -140,7 +144,6 @@ abstract class IndexedScrollController extends ScrollController
     if (observer != null && observer.isActive) {
       observer.showInViewport(
         position,
-        maxTraceCount: maxTraceCount,
         duration: duration,
         curve: curve,
       );
@@ -154,11 +157,11 @@ abstract class IndexedScrollController extends ScrollController
   /// if [ScrollView.reverse] is false, the leading edge is the top of the viewport
   /// if [ScrollView.reverse] is true, the leasing edge is the bottom of the viewport
   void jumpToIndex(int index, {String? whichObserver, bool closeEdge = true}) {
-    _jumpToUnrevealedIndex(
-      index,
-      closeEdge: closeEdge,
-      whichObserver: whichObserver,
-    );
+    final observer = _obtainObserver(whichObserver);
+
+    if (observer != null) {
+      observer.jumpToIndex(index, position: position);
+    }
   }
 
   /// for [IndexedScrollController.multiObserver], [whichObserver] is required
@@ -179,205 +182,33 @@ abstract class IndexedScrollController extends ScrollController
     bool closeEdge = true,
     String? whichObserver,
   }) async {
-    if (_animationRevealing != null && !_animationRevealing!.isCompleted) {
-      _animationRevealing?.future.then(
-        (canSchedule) {
-          if (canSchedule) {
-            animateToIndex(
-              index,
-              whichObserver: whichObserver,
-              duration: duration,
-              curve: curve,
-              closeEdge: closeEdge,
-            );
-          }
-        },
-      );
-    } else {
-      _animationRevealing = null;
-      _animationRevealing = Completer();
-      _revealingIndexWithAnimation(
+    final observer = _obtainObserver(whichObserver);
+
+    if (observer != null) {
+      return observer.animateToIndex(
         index,
+        position: position,
         duration: duration,
         curve: curve,
-        whichObserver: whichObserver,
-        closeEdge: closeEdge,
       );
+    } else {
+      return Future.value(false);
     }
-
-    return _animationRevealing!.future;
   }
 
   ScrollObserver _createObserver({
     bool hasMultiChild = true,
     String? observerKey,
     int? itemCount,
+    int? maxTraceCount,
   });
 
   ScrollObserver? _obtainObserver([
     String? observerKey,
   ]);
 
-  /// if [whichObserver]'s sliver is not visible currently, we should show it in the viewport first
-  /// then jump to [index] by invoking [_jumpToUnrevealedIndex] multiple times
-  /// if [closeEdge] is true, [_adjustScrollWithTolerance] is used to adjust [index] to the leading edge
-  /// after [index] has been onstage (determined by [ScrollObserver.isOnStage])
-  void _jumpToUnrevealedIndex(
-    int index, {
-    bool closeEdge = true,
-    String? whichObserver,
-  }) {
-    final observer = _obtainObserver(whichObserver);
-
-    if (observer == null) {
-      throw ErrorDescription(
-        "Not found a [ScrollObserver] for $whichObserver. "
-        "Please ensure use [IndexedScrollController.createOrObtainObserver] to create one before using it",
-      );
-    } else if (!observer.isActive) {
-      // no any [RenderSliver] is observed by this observer
-      // so no further action
-      return;
-    }
-
-    index = observer.normalizeIndex(index);
-
-    if (!observer.visible) {
-      observer.showInViewport(position);
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        _jumpToUnrevealedIndex(
-          index,
-          closeEdge: closeEdge,
-          whichObserver: whichObserver,
-        );
-      });
-    } else {
-      final isOnstage = observer.isOnStage(
-        index,
-        scrollExtent: ScrollExtent.fromPosition(position),
-        strategy: PredicatorStrategy.inside,
-      );
-
-      if (!isOnstage) {
-        _jumpWithoutCheck(observer, index);
-
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          _jumpToUnrevealedIndex(
-            index,
-            closeEdge: closeEdge,
-            whichObserver: whichObserver,
-          );
-        });
-      } else if (isOnstage && closeEdge) {
-        _adjustScrollWithTolerance(observer, index);
-      }
-    }
-  }
-
-  /// the future result indicates if we could schedule another animation revealing
-  /// if true, continue scheduling if having another revealing task
-  /// if false, the subsequent animation revealing would not be scheduled
-  /// typically, false would be completed when [dispose] this controller
-  Completer<bool>? _animationRevealing;
-
-  /// if [ScrollObserver.visible] is false, we should first try to reveal its viewport
-  /// once its sliver in the viewport is visible, we continue revealing for [index]
-  ///
-  /// if [index] is not onstage before the current revealing
-  /// we should wait the current animated revealing ending, and then schedule the next revealing
-  ///
-  /// if we need to adjust the [index] at the leadingEdge/trailingEdge (corresponding to if list/grid is reversed)
-  /// we would wait the current revealing ending and then complete [_animationRevealing]
-  /// since we know [index] must be onstage at that time
-  /// todo: split [duration] into different parts if we need to animate multiple times to reveal this index
-  FutureOr<void> _revealingIndexWithAnimation(
-    int index, {
-    required Duration duration,
-    required Curve curve,
-    bool closeEdge = true,
-    String? whichObserver,
-  }) async {
-    assert(_animationRevealing != null);
-
-    final observer = _obtainObserver(whichObserver);
-
-    if (observer == null) {
-      throw ErrorDescription(
-        "Not found a [ScrollObserver] for $whichObserver. "
-        "Please ensure use [IndexedScrollController.createOrObtainObserver] to create one before using it",
-      );
-    } else if (!observer.isActive) {
-      // no any [RenderSliver] is observed by this observer
-      // so no further action
-      return;
-    }
-
-    index = observer.normalizeIndex(index);
-
-    if (!observer.visible) {
-      observer.showInViewport(position, duration: duration, curve: curve);
-
-      Future.delayed(
-        duration,
-        () {
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            _revealingIndexWithAnimation(
-              index,
-              duration: duration,
-              curve: curve,
-              whichObserver: whichObserver,
-              closeEdge: closeEdge,
-            );
-          });
-        },
-      );
-    } else {
-      final isOnstage = observer.isOnStage(
-        index,
-        scrollExtent: ScrollExtent.fromPosition(position),
-        strategy: PredicatorStrategy.inside,
-      );
-
-      if (!isOnstage) {
-        await _jumpWithoutCheck(
-          observer,
-          index,
-          duration: duration,
-          curve: curve,
-        );
-
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          _revealingIndexWithAnimation(
-            index,
-            duration: duration,
-            curve: curve,
-            whichObserver: whichObserver,
-            closeEdge: closeEdge,
-          );
-        });
-      } else if (isOnstage && closeEdge) {
-        await _adjustScrollWithTolerance(
-          observer,
-          index,
-          duration: duration,
-          curve: curve,
-        );
-
-        _animationRevealing?.complete(true);
-      } else {
-        _animationRevealing?.complete(true);
-      }
-    }
-  }
-
-  @mustCallSuper
   @protected
-  void _clear() {
-    if (_animationRevealing != null && !_animationRevealing!.isCompleted) {
-      _animationRevealing?.complete(false);
-    }
-    _animationRevealing = null;
-  }
+  void _clear();
 
   void debugCheckOnstageItems() {}
 }
@@ -397,14 +228,9 @@ class _MultiScrollController extends IndexedScrollController {
     bool hasMultiChild = true,
     String? observerKey,
     int? itemCount,
+    int? maxTraceCount,
   }) {
-    if (observerKey == null) {
-      throw ErrorDescription(
-        "Must give the observer key(whichObserver) to specify which [ScrollObserver] you want to create/obtain "
-        "for [IndexedScrollController.multiObserver]. If you only need a single [ScrollObserver], "
-        "please use [IndexedScrollController.singleObserver]",
-      );
-    }
+    _checkObserverKey(observerKey);
 
     assert(
       !_observers.containsKey(observerKey),
@@ -415,9 +241,10 @@ class _MultiScrollController extends IndexedScrollController {
       label: observerKey,
       itemCount: itemCount,
       hasMultiChild: hasMultiChild,
+      maxTraceCount: maxTraceCount,
     );
 
-    _observers[observerKey] = observer;
+    _observers[observerKey!] = observer;
     return observer;
   }
 
@@ -425,25 +252,13 @@ class _MultiScrollController extends IndexedScrollController {
   ScrollObserver? _obtainObserver([
     String? observerKey,
   ]) {
-    if (observerKey == null) {
-      throw ErrorDescription(
-        "Must give the observer key(whichObserver) to specify which [ScrollObserver] you want to create/obtain "
-        "for [IndexedScrollController.multiObserver]. If you only need a single [ScrollObserver], "
-        "please use [IndexedScrollController.singleObserver]",
-      );
-    }
+    _checkObserverKey(observerKey);
     return _observers[observerKey];
   }
 
   @override
   void jumpToIndex(int index, {String? whichObserver, bool closeEdge = true}) {
-    if (whichObserver == null) {
-      throw ErrorDescription(
-        "Must give the observer key(whichObserver) to specify which [ScrollObserver] you want to use "
-        "for [IndexedScrollController.multiObserver]. If you only need a single [ScrollObserver], "
-        "please use [IndexedScrollController.singleObserver]",
-      );
-    }
+    _checkObserverKey(whichObserver);
 
     super.jumpToIndex(
       index,
@@ -460,13 +275,7 @@ class _MultiScrollController extends IndexedScrollController {
     bool closeEdge = true,
     String? whichObserver,
   }) async {
-    if (whichObserver == null) {
-      throw ErrorDescription(
-        "Must give the observer key(whichObserver) to specify which [ScrollObserver] you want to use "
-        "for [IndexedScrollController.multiObserver]. If you only need a single [ScrollObserver], "
-        "please use [IndexedScrollController.singleObserver]",
-      );
-    }
+    _checkObserverKey(whichObserver);
 
     return super.animateToIndex(
       index,
@@ -480,20 +289,13 @@ class _MultiScrollController extends IndexedScrollController {
   @override
   void showInViewport({
     String? observerKey,
-    int maxTraceCount = 5,
     Duration duration = Duration.zero,
     Curve curve = Curves.ease,
   }) {
-    if (observerKey == null) {
-      throw ErrorDescription(
-        "Must give the observer key(whichObserver) to specify which [ScrollObserver] you want to use "
-        "for [IndexedScrollController.multiObserver]. If you only need a single [ScrollObserver], "
-        "please use [IndexedScrollController.singleObserver]",
-      );
-    }
+    _checkObserverKey(observerKey);
+
     super.showInViewport(
       observerKey: observerKey,
-      maxTraceCount: maxTraceCount,
       curve: curve,
       duration: duration,
     );
@@ -501,8 +303,6 @@ class _MultiScrollController extends IndexedScrollController {
 
   @override
   void _clear() {
-    super._clear();
-
     for (final observer in _observers.values) {
       observer.clear();
     }
@@ -514,6 +314,16 @@ class _MultiScrollController extends IndexedScrollController {
     for (final observer in _observers.values) {
       observer.debugCheckOnstageItems(
         scrollExtent: ScrollExtent.fromPosition(position),
+      );
+    }
+  }
+
+  void _checkObserverKey(String? observerKey) {
+    if (observerKey == null) {
+      throw ErrorDescription(
+        "Must give the observer key(whichObserver) to specify which [ScrollObserver] you want to use "
+        "for [IndexedScrollController.multiObserver]. If you only need a single [ScrollObserver], "
+        "please use [IndexedScrollController.singleObserver]",
       );
     }
   }
@@ -534,6 +344,7 @@ class _SingleScrollController extends IndexedScrollController {
     bool hasMultiChild = true,
     String? observerKey,
     int? itemCount,
+    int? maxTraceCount,
   }) {
     assert(
       _observer == null,
@@ -543,6 +354,7 @@ class _SingleScrollController extends IndexedScrollController {
       label: observerKey ?? "SingleScrollController",
       itemCount: itemCount,
       hasMultiChild: hasMultiChild,
+      maxTraceCount: maxTraceCount,
     );
     return _observer!;
   }
@@ -555,7 +367,6 @@ class _SingleScrollController extends IndexedScrollController {
 
   @override
   void _clear() {
-    super._clear();
     _observer?.clear();
     _observer = null;
   }
@@ -616,5 +427,9 @@ mixin ScrollMixin on ScrollController {
       duration: duration,
       curve: curve,
     );
+  }
+
+  void _scheduleAsPostFrameCallback(void Function(Duration) callback) {
+    WidgetsBinding.instance.addPostFrameCallback(callback);
   }
 }

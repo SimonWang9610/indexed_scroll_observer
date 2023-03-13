@@ -140,10 +140,10 @@ abstract class SliverIndexedProxyDelegate extends SliverChildDelegate {
   }
 
   ///! SliverList must use this proxy delegate for capturing didFinishLayout event
-  @override
-  void didFinishLayout(int firstIndex, int lastIndex) {
-    observer?.onFinishLayout(firstIndex, lastIndex);
-  }
+  // @override
+  // void didFinishLayout(int firstIndex, int lastIndex) {
+  //   // observer?.onFinishLayout(firstIndex, lastIndex);
+  // }
 
   @override
   Widget? build(BuildContext context, int index) {

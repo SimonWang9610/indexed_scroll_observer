@@ -102,7 +102,7 @@ class _PositionedListExampleState extends State<PositionedListExample> {
   }
 
   void _goStart() {
-    _controller.showInViewport(maxTraceCount: 20);
+    _controller.showInViewport();
   }
 
   void _addItem() {
@@ -256,4 +256,110 @@ class _SeparatedPositionedListExampleState
   }
 
   int _toRenderIndex(int index) => index * 2;
+}
+
+class OfficialListExample extends StatefulWidget {
+  const OfficialListExample({super.key});
+
+  @override
+  State<OfficialListExample> createState() => _OfficialListExampleState();
+}
+
+class _OfficialListExampleState extends State<OfficialListExample> {
+  int _itemCount = 30;
+
+  final IndexedScrollController _controller =
+      IndexedScrollController.singleObserver();
+
+  @override
+  void initState() {
+    super.initState();
+    // WidgetsBinding.instance.addPostFrameCallback((_) {
+    //   _controller.jumpToIndex(5);
+    // });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        centerTitle: true,
+        title: const Text("List View Example"),
+      ),
+      body: Column(
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              OutlinedButton(
+                onPressed: _addItem,
+                child: const Text("Add Item"),
+              ),
+              OutlinedButton(
+                onPressed: _deleteItem,
+                child: const Text("Delete Item"),
+              ),
+              OutlinedButton(
+                onPressed: _goStart,
+                child: const Text("Scroll to edge"),
+              ),
+            ],
+          ),
+          SliverJumpWidget(
+            label: "without animation",
+            onJump: (index) {
+              _controller.jumpToIndex(index);
+            },
+          ),
+          SliverJumpWidget(
+            label: "animation",
+            onJump: (index) {
+              _controller.animateToIndex(
+                index,
+                duration: const Duration(milliseconds: 200),
+                curve: Curves.fastLinearToSlowEaseIn,
+              );
+            },
+          ),
+          Expanded(
+            child: ListView.builder(
+              controller: _controller,
+              itemBuilder: (context, index) => ObserverProxy(
+                observer:
+                    _controller.createOrObtainObserver(itemCount: _itemCount),
+                child: ListTile(
+                  key: ValueKey<int>(index),
+                  leading: const CircleAvatar(
+                    child: Text("L"),
+                  ),
+                  title: Text("Positioned List Example $index"),
+                ),
+              ),
+              itemCount: _itemCount,
+            ),
+          )
+        ],
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          _controller.debugCheckOnstageItems();
+        },
+        child: const Icon(Icons.visibility_off_rounded),
+      ),
+    );
+  }
+
+  void _goStart() {
+    _controller.showInViewport();
+  }
+
+  void _addItem() {
+    _itemCount++;
+    setState(() {});
+  }
+
+  void _deleteItem() {
+    _itemCount = max(--_itemCount, 0);
+    setState(() {});
+  }
 }

@@ -93,13 +93,18 @@ class RenderObserverProxy extends RenderProxyBox {
         size: size,
         parentData: _findSliverParentData(sliver),
       );
-
-      // [RenderSliverMultiBoxAdaptor] would notify the layout is finished
-      // however, if the observer has only one child, we manually finish layout here
-      if (_observer != null && !_observer!.hasMultiChild) {
-        _observer?.onFinishLayout(0, 0);
-      }
     }
+  }
+
+  /// when painting [child], [child] must be laid out
+  /// so we could invoke [ScrollObserver.doFinishLayout] safely
+  @override
+  void paint(PaintingContext context, Offset offset) {
+    super.paint(context, offset);
+
+    print("painting for [${_observer?.label}]");
+
+    _observer?.doFinishLayout();
   }
 
   /// find the closest [RenderSliver] so that [_observer] could bind it when invoking [ScrollObserver.onLayout]
@@ -112,7 +117,8 @@ class RenderObserverProxy extends RenderProxyBox {
 
     int traceCount = 0;
 
-    while (traceCount < _kMaxTraceDepth && parentSliver is RenderObject) {
+    while (
+        traceCount < _observer!.maxTraceCount && parentSliver is RenderObject) {
       if (parentSliver is RenderSliver) {
         break;
       } else {
@@ -124,7 +130,7 @@ class RenderObserverProxy extends RenderProxyBox {
     assert(
       parentSliver != null,
       "Cannot find a [RenderObject] who has [SliverMultiBoxAdaptorParentData] "
-      "between its ancestors and $this during $_kMaxTraceDepth times tracing"
+      "between its ancestors and $this during ${_observer!.maxTraceCount} times tracing"
       "In future, custom max tracing depth would be supported.",
     );
 
@@ -139,26 +145,25 @@ class RenderObserverProxy extends RenderProxyBox {
     } else {
       RenderObject node = parent as RenderObject;
       ParentData? data;
+      int traceCount = 0;
 
-      while (node != sliver) {
+      while (node != sliver && traceCount < _observer!.maxTraceCount) {
         data = node.parentData!;
 
         if (data is SliverMultiBoxAdaptorParentData) {
           break;
         } else {
           node = node.parent! as RenderObject;
+          traceCount++;
         }
       }
 
       assert(
         data != null,
         "Cannot find a [RenderObject] who has [SliverMultiBoxAdaptorParentData] "
-        "between its ancestor $sliver and $this during $_kMaxTraceDepth times tracing"
-        "In future, custom max tracing depth would be supported",
+        "between its ancestor $sliver and $this during ${_observer!.maxTraceCount} times tracing",
       );
       return data!;
     }
   }
 }
-
-const int _kMaxTraceDepth = 50;
