@@ -52,24 +52,24 @@ class _PositionedGridExampleState extends State<PositionedGridExample> {
             ],
           ),
           SliverJumpWidget(
-            label: observerKey,
+            label: "without animation",
             onJump: (index) => _controller.jumpToIndex(
               index,
             ),
           ),
           SliverJumpWidget(
-            label: observerKey,
+            label: "animation",
             onJump: (index) {
               _controller.animateToIndex(
                 index,
                 duration: const Duration(milliseconds: 200),
                 curve: Curves.bounceInOut,
               );
-              _controller.animateToIndex(
-                _itemCount - index,
-                duration: const Duration(milliseconds: 200),
-                curve: Curves.bounceInOut,
-              );
+              // _controller.animateToIndex(
+              //   _itemCount - index,
+              //   duration: const Duration(milliseconds: 200),
+              //   curve: Curves.bounceInOut,
+              // );
             },
           ),
           Expanded(

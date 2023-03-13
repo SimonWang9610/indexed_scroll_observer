@@ -214,6 +214,7 @@ abstract class PositionedScrollController extends ScrollController {
       return observer.isRevealed(
         index,
         scrollExtent: ScrollExtent.fromPosition(position),
+        shouldConvert: true,
       );
     } else {
       return false;

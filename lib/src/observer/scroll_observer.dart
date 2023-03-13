@@ -265,7 +265,10 @@ abstract class ScrollObserver extends ObserverScrollInterface
     required ScrollExtent scrollExtent,
     PredicatorStrategy strategy = PredicatorStrategy.tolerance,
     bool shouldNormalized = true,
+    bool shouldConvert = false,
   }) {
+    index = shouldConvert ? targetToRenderIndex?.call(index) ?? index : index;
+
     final validIndex = shouldNormalized ? normalizeIndex(index) : index;
 
     final itemScrollModel = getItemScrollExtent(validIndex);
@@ -394,6 +397,7 @@ class _SingleChildObserver extends ScrollObserver {
     required ScrollExtent scrollExtent,
     PredicatorStrategy strategy = PredicatorStrategy.tolerance,
     bool shouldNormalized = true,
+    bool shouldConvert = false,
   }) =>
       sliverVisible;
 

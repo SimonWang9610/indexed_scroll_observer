@@ -9,6 +9,11 @@ import 'onstage_strategy.dart';
 
 typedef IndexConverter = int Function(int);
 
+/// the tolerance between the scroll offset of items and the current pixels of [ScrollPosition]
+const double _kPixelDiffTolerance = 5;
+
+const Duration _kDefaultAdjustDuration = Duration(milliseconds: 120);
+
 abstract class ObserverScrollInterface {
   /// if this observer is observing multi children for a [RenderSliver]
   bool get hasMultiChild;
@@ -74,13 +79,14 @@ abstract class ObserverScrollInterface {
   /// [shouldNormalized] indicates if we need to [normalizeIndex] into a valid range
   /// [ScrollExtent] is the current scroll extent built from [ScrollPosition] to
   /// indicate the current min/max scroll extent and pixels
-  /// [indexConverter] is used to convert the [RenderObserverProxy]'s index to the specify index
-  /// if null, it would
+  /// if [shouldConvert] is true, it would try to use [targetToRenderIndex] to convert [index] to its render index
+  /// [shouldConvert] is always false when using internally for [jumpToIndex] and [animateToIndex]
   bool isRevealed(
     int index, {
     required ScrollExtent scrollExtent,
     PredicatorStrategy strategy = PredicatorStrategy.tolerance,
     bool shouldNormalized = true,
+    bool shouldConvert = false,
   });
 
   /// estimate the scroll offset for [target]
@@ -120,11 +126,6 @@ abstract class ObserverScrollInterface {
     }
   }
 }
-
-/// the tolerance between the scroll offset of items and the current pixels of [ScrollPosition]
-const double _kPixelDiffTolerance = 5;
-
-const Duration _kDefaultAdjustDuration = Duration(milliseconds: 60);
 
 void _scheduleAsPostFrameCallback(void Function(Duration) callback) {
   WidgetsBinding.instance.addPostFrameCallback(callback);
@@ -380,7 +381,7 @@ mixin ObserverScrollImpl on ObserverScrollInterface {
       return position.moveTo(
         estimated,
         duration: (!hasMultiChild) ? _kDefaultAdjustDuration : null,
-        curve: curve,
+        curve: curve ?? Curves.bounceInOut,
       );
     }
     return null;
