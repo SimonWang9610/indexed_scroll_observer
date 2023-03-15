@@ -1,4 +1,4 @@
-# 2.0.0 (break change)
+## 2.0.0 (break change)
 
 See [PR details](https://github.com/SimonWang9610/indexed_scroll_observer/issues/2) about the below changes.
 

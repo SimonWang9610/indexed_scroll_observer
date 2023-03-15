@@ -156,10 +156,14 @@ and the Flutter guide for
 - [ListWheelScrollView example](https://github.com/SimonWang9610/indexed_scroll_observer/blob/main/example/lib/example/list_wheel_example.dart)
 - [SingleChildScrollView example](https://github.com/SimonWang9610/indexed_scroll_observer/blob/main/example/lib/example/single_child_scroll_view_example.dart)
 
-`ScrollController` |
+## FAQ
 
-### My other packages
+TODO
 
-- [simple_http_api![pub package](https://img.shields.io/pub/v/simple_http_api?color=blue&style=plastic)](https://pub.dev/packages/simple_http_api)
+## Contributions
 
-- [relative_stack![pub package](https://img.shields.io/pub/v/relative_stack?color=blue&style=plastic)](https://pub.dev/packages/relative_stack)
+Feel free to contribute to this project.
+
+If you find a bug or want a feature, but don't know how to fix/implement it, please [fill an issue](https://github.com/SimonWang9610/indexed_scroll_observer/issues).
+
+If you fixed a bug or implemented a feature, please [send a pull request](https://github.com/SimonWang9610/indexed_scroll_observer/pulls)
