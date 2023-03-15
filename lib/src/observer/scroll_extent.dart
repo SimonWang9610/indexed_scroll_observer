@@ -1,6 +1,5 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter/rendering.dart';
-import 'package:positioned_scroll_observer/src/widgets/observer_proxy.dart';
 
 @immutable
 class ScrollExtent {
@@ -57,10 +56,13 @@ class ItemScrollExtent {
     this.crossAxisOffset,
   });
 
+  /// placeholder for observers implemented with [SingleChildEstimation]
   factory ItemScrollExtent.empty() =>
       const ItemScrollExtent(index: 0, mainAxisOffset: 0, dataHashCode: -1);
 
-  factory ItemScrollExtent.multi(SliverMultiBoxAdaptorParentData parentData) {
+  /// used for [SliverScrollObserver] implemented with [MultiChildEstimation]
+  factory ItemScrollExtent.fromSliverData(
+      SliverMultiBoxAdaptorParentData parentData) {
     return ItemScrollExtent(
       index: parentData.index!,
       mainAxisOffset: parentData.layoutOffset!,
@@ -71,31 +73,7 @@ class ItemScrollExtent {
     );
   }
 
-  factory ItemScrollExtent.single(
-      SliverPhysicalParentData parentData, Size size,
-      {required Axis axis}) {
-    double mainAxisOffset = 0.0;
-    double crossAxisOffset = 0.0;
-
-    switch (axis) {
-      case Axis.vertical:
-        mainAxisOffset = parentData.paintOffset.dy;
-        crossAxisOffset = parentData.paintOffset.dx;
-        break;
-      case Axis.horizontal:
-        mainAxisOffset = parentData.paintOffset.dx;
-        crossAxisOffset = parentData.paintOffset.dy;
-        break;
-    }
-
-    return ItemScrollExtent(
-      index: 0,
-      dataHashCode: parentData.hashCode,
-      mainAxisOffset: mainAxisOffset,
-      crossAxisOffset: crossAxisOffset,
-    );
-  }
-
+  /// used for [BoxScrollObserver] implemented with [MultiChildEstimation]
   factory ItemScrollExtent.fromBoxData(
       int index, BoxParentData parentData, Axis axis) {
     double mainAxisOffset = 0.0;
@@ -120,10 +98,13 @@ class ItemScrollExtent {
     );
   }
 
+  /// get the scroll offset relative to its ancestor [RenderObject]
+  /// based on its ancestor's [origin].
   double getLeadingOffset(double origin) {
     return origin + mainAxisOffset;
   }
 
+  /// get the trailing scroll offset based on the given [Axis] and its leading scroll offset [leading].
   double getTrailingOffset(double leading,
       {required Axis axis, required Size size}) {
     switch (axis) {

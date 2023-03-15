@@ -13,15 +13,37 @@ class SingleChildScrollExample extends StatefulWidget {
 class _SingleChildScrollExampleState extends State<SingleChildScrollExample> {
   final ScrollController _controller = ScrollController();
 
-  late final MultiChildBoxObserver _observer = MultiChildBoxObserver(
+  late final _observer = ScrollObserver.boxMulti(
     axis: _axis,
     itemCount: 30,
   );
 
-  Axis _axis = Axis.horizontal;
+  Axis _axis = Axis.vertical;
 
   @override
   Widget build(BuildContext context) {
+    SingleChildScrollView(
+      controller: _controller,
+      scrollDirection: _axis,
+      child: Column(
+        children: [
+          for (int i = 0; i < 30; i++)
+            ObserverProxy(
+              observer: _observer,
+              child: DecoratedBox(
+                decoration: BoxDecoration(border: Border.all()),
+                child: SizedBox(
+                  height: 100,
+                  width: 100,
+                  child: Center(
+                    child: Text("Column item $i"),
+                  ),
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
     return Scaffold(
       appBar: AppBar(
         centerTitle: true,
@@ -53,7 +75,7 @@ class _SingleChildScrollExampleState extends State<SingleChildScrollExample> {
             child: SingleChildScrollView(
               controller: _controller,
               scrollDirection: _axis,
-              child: Row(
+              child: Column(
                 children: [
                   for (int i = 0; i < 30; i++)
                     BoxObserverProxy(

@@ -12,11 +12,10 @@ class OfficialListExample extends StatefulWidget {
 }
 
 class _OfficialListExampleState extends State<OfficialListExample> {
-  int _itemCount = 30;
+  int _itemCount = 1000;
 
   final ScrollController _controller = ScrollController();
-  // late final ScrollObserver _observer =
-  //     ScrollObserver.multiChild(itemCount: _itemCount);
+
   late final SliverScrollObserver _observer =
       MultiChildSliverObserver(itemCount: _itemCount);
 
@@ -29,6 +28,20 @@ class _OfficialListExampleState extends State<OfficialListExample> {
 
   @override
   Widget build(BuildContext context) {
+    ListView.builder(
+      controller: _controller,
+      itemBuilder: (context, index) => SliverObserverProxy(
+        observer: _observer,
+        child: ListTile(
+          key: ValueKey<int>(index),
+          leading: const CircleAvatar(
+            child: Text("L"),
+          ),
+          title: Text("Positioned List Example $index"),
+        ),
+      ),
+      itemCount: _itemCount,
+    );
     return Scaffold(
       appBar: AppBar(
         centerTitle: true,
@@ -68,7 +81,7 @@ class _OfficialListExampleState extends State<OfficialListExample> {
               _observer.animateToIndex(
                 index,
                 position: _controller.position,
-                duration: const Duration(milliseconds: 200),
+                duration: const Duration(milliseconds: 1000),
                 curve: Curves.fastLinearToSlowEaseIn,
               );
             },
@@ -130,11 +143,11 @@ class OfficialSeparatedListExample extends StatefulWidget {
 
 class _OfficialSeparatedListExampleState
     extends State<OfficialSeparatedListExample> {
-  int _itemCount = 30;
+  int _itemCount = 1000;
 
   final ScrollController _controller = ScrollController();
 
-  late final SliverScrollObserver _observer = MultiChildSliverObserver(
+  late final _observer = ScrollObserver.sliverMulti(
     itemCount: _computeActualChildCount(_itemCount),
   )
     ..targetToRenderIndex = _toRenderIndex

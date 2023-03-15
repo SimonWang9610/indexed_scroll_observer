@@ -16,7 +16,7 @@ class _PositionedGridExampleState extends State<PositionedGridExample> {
   int _itemCount = 30;
 
   final ScrollController _controller = ScrollController();
-  late final grid = MultiChildSliverObserver(itemCount: _itemCount);
+  late final grid = ScrollObserver.sliverMulti(itemCount: _itemCount);
 
   final String observerKey = "grid";
   @override

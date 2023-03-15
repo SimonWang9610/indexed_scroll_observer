@@ -12,6 +12,9 @@ typedef MultiChildSliver
 /// Other kinds of observers should extends [LayoutObserver]
 /// to override the functions of [onLayout] and [doFinishLayout] that are used in [RenderScrollObserverProxy]
 ///
+/// By extending [LayoutObserver], the subclasses could be used in [ObserverProxy] and enable to report
+/// the layout information for items that they are observing.
+///
 /// See also:
 ///   * [RenderObserverProxy], which invoke [LayoutObserver.onLayout] and [LayoutObserver.doFinishLayout]
 ///   to complete the process of observing
@@ -108,6 +111,9 @@ abstract class LayoutObserver<T extends RenderObject> {
     shouldDoFinishLayout = false;
   }
 
+  /// make the [renderObject] is visible ont the screen.
+  /// we guarantee that [RenderAbstractViewport.of] would find an [RenderAbstractViewport] ancestor
+  /// for [renderObject], since the scrollable content is always wrapped in a kind of [RenderAbstractViewport].
   void showInViewport(
     ViewportOffset offset, {
     Duration duration = Duration.zero,
@@ -141,5 +147,7 @@ abstract class LayoutObserver<T extends RenderObject> {
     _observing = true;
   }
 
+  /// check if [parentData] is desired for an observer.
+  /// it should be implemented by the subclasses of [LayoutObserver]
   bool isDesiredParentData(ParentData? parentData);
 }

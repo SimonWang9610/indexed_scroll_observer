@@ -16,10 +16,9 @@ class _OfficialReorderableListExampleState
     extends State<OfficialReorderableListExample> {
   final ScrollController _controller = ScrollController();
 
-  late final SliverScrollObserver _observer =
-      MultiChildSliverObserver(itemCount: _items.length)
-        ..targetToRenderIndex = _toRenderIndex
-        ..renderToTargetIndex = _toTargetIndex;
+  late final _observer = ScrollObserver.sliverMulti(itemCount: _items.length)
+    ..targetToRenderIndex = _toRenderIndex
+    ..renderToTargetIndex = _toTargetIndex;
 
   late final List<int> _items = List.generate(
     30,

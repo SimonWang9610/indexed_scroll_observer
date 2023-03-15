@@ -15,10 +15,10 @@ class _CustomViewExampleState extends State<CustomViewExample> {
 
   final ScrollController _controller = ScrollController();
 
-  late final keepAlive = MultiChildSliverObserver(itemCount: _itemCount);
-  late final grid = MultiChildSliverObserver(itemCount: _itemCount);
-  late final list = MultiChildSliverObserver(itemCount: _itemCount);
-  late final appbar = SingleChildSliverObserver();
+  late final keepAlive = ScrollObserver.sliverMulti(itemCount: _itemCount);
+  late final grid = ScrollObserver.sliverMulti(itemCount: _itemCount);
+  late final list = ScrollObserver.sliverMulti(itemCount: _itemCount);
+  late final appbar = ScrollObserver.sliverSingle();
 
   @override
   void dispose() {

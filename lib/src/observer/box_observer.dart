@@ -120,16 +120,15 @@ class MultiChildBoxObserver extends BoxScrollObserver<MultiChildRenderBox>
     );
 
     if (shouldDoFinishLayout && isObserving) {
-      print("$runtimeType: doFinishLayout");
       shouldDoFinishLayout = false;
 
       RenderBox? child = (renderObject as MultiChildRenderBox).firstChild;
 
-      int? first;
-      int? last;
-
       int count = 0;
       double totalExtent = 0;
+
+      int? first;
+      int? last;
 
       while (child != null) {
         final parentData =
@@ -145,7 +144,8 @@ class MultiChildBoxObserver extends BoxScrollObserver<MultiChildRenderBox>
         final item = ItemScrollExtent.fromBoxData(index, parentData, axis);
 
         items[item.index] = item;
-        totalExtent += item.mainAxisOffset;
+
+        totalExtent += getMainAxisExtent(item.index);
 
         first = lessFirst(first, item.index);
         last = greaterLast(last, item.index);
@@ -187,10 +187,11 @@ class MultiChildBoxObserver extends BoxScrollObserver<MultiChildRenderBox>
       }
     }
 
-    print("$runtimeType: $onstageItems");
+    debugPrint("$runtimeType: $onstageItems");
   }
 }
 
+// todo: waiting testing
 class SingleChildBoxObserver extends BoxScrollObserver<SingleChildRenderBox>
     with SingleChildEstimation {
   SingleChildBoxObserver({required super.axis});
@@ -215,7 +216,7 @@ class SingleChildBoxObserver extends BoxScrollObserver<SingleChildRenderBox>
     ParentData? parentData,
   }) {
     super.onLayout(value, size: size, parentData: parentData);
-    size = size;
+    this.size = size;
   }
 
   @override

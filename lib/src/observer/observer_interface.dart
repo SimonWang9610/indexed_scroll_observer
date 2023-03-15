@@ -1,6 +1,6 @@
-import 'package:flutter/rendering.dart';
-
 import 'dart:async';
+
+import 'package:flutter/rendering.dart';
 
 import 'package:flutter/widgets.dart';
 
@@ -9,15 +9,17 @@ import 'onstage_strategy.dart';
 
 typedef IndexConverter = int Function(int);
 
+void _scheduleAsPostFrameCallback(void Function(Duration) callback) {
+  WidgetsBinding.instance.addPostFrameCallback(callback);
+}
+
 /// the tolerance between the scroll offset of items and the current pixels of [ScrollPosition]
 const double _kPixelDiffTolerance = 5;
 
 const Duration _kDefaultAdjustDuration = Duration(milliseconds: 60);
 
 abstract class ObserverScrollInterface {
-  /// if some children have been laid out completely,
-  /// it indicates some required information to estimate scroll offset for a certain item is ready to use.
-  /// if [firstLayoutFinished] is false, it would throw errors to report illegal usage.
+  /// indicates that if some children have been laid out completely and are being painted on the screen,
   bool get firstLayoutFinished;
 
   /// if the observing [RenderSliver] is visible in its closest ancestor [RenderViewportBase]
@@ -111,22 +113,36 @@ abstract class ObserverScrollInterface {
   /// get the trailing edge for the viewport
   double getTrailingEdgeFromScroll(ScrollExtent scrollExtent);
 
+  double getMainAxisExtent(int index) {
+    final size = getItemSize(index);
+
+    if (size != null) {
+      switch (axis) {
+        case Axis.vertical:
+          return size.height;
+        case Axis.horizontal:
+          return size.width;
+      }
+    }
+    return 0.0;
+  }
+
   /// estimate the scroll offset for [target].
   /// if [target] has been observed, it should return the observed scroll offset.
   /// if not, it would use some other information to estimate the scroll offset for [target].
   /// See:
-  ///   * [ScrollObserver.singleChild], which implements how to do estimation for slivers with single child
-  ///   * [ScrollObserver.multiChild], which implements how to do estimation for slivers with multi children
+  ///   * [SingleChildEstimation], which implements how to do estimation for [RenderObject] with single child
+  ///   * [MultiChildEstimation], which implements how to do estimation for [RenderObject] with multi children
   double estimateScrollOffset(
     int target, {
     required ScrollExtent scrollExtent,
   });
 
   /// normalize [index] to a valid range.
-  /// typically for a [ScrollObserver] with a finite item count.
+  /// typically for a [LayoutObserver] with a finite item count.
   /// See:
-  ///   * [ScrollObserver.singleChild]
-  ///   * [ScrollObserver.multiChild]
+  ///   * [MultiChildEstimation], which implements the logic how to normalize for [RenderObject] with multi children
+  ///   * [SingleChildEstimation], which implements the logic how to normalize for [RenderObject] with single child
   int normalizeIndex(int index);
 
   /// get the observed [ItemScrollExtent] for [index]
@@ -152,10 +168,6 @@ abstract class ObserverScrollInterface {
     required ScrollExtent scrollExtent,
     PredicatorStrategy strategy = PredicatorStrategy.tolerance,
   }) {}
-}
-
-void _scheduleAsPostFrameCallback(void Function(Duration) callback) {
-  WidgetsBinding.instance.addPostFrameCallback(callback);
 }
 
 mixin ObserverScrollImpl on ObserverScrollInterface {

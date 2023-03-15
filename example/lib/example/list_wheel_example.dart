@@ -12,7 +12,7 @@ class ListWheelExample extends StatefulWidget {
 class _ListWheelExampleState extends State<ListWheelExample> {
   final ScrollController _controller = ScrollController();
 
-  final MultiChildBoxObserver _observer = MultiChildBoxObserver(
+  final _observer = ScrollObserver.boxMulti(
     axis: Axis.vertical,
     itemCount: 30,
   );
@@ -47,18 +47,24 @@ class _ListWheelExampleState extends State<ListWheelExample> {
             },
           ),
           Expanded(
-            child: ListWheelScrollView(
-              controller: _controller,
-              itemExtent: 100,
-              children: [
-                for (int i = 0; i < 30; i++)
-                  ObserverProxy(
-                    observer: _observer,
-                    child: Center(
-                      child: Text("List Wheel $i"),
-                    ),
-                  )
-              ],
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 40),
+              child: ListWheelScrollView(
+                controller: _controller,
+                itemExtent: 100,
+                children: [
+                  for (int i = 0; i < 30; i++)
+                    ObserverProxy(
+                      observer: _observer,
+                      child: DecoratedBox(
+                        decoration: BoxDecoration(border: Border.all()),
+                        child: Center(
+                          child: Text("List Wheel $i"),
+                        ),
+                      ),
+                    )
+                ],
+              ),
             ),
           ),
         ],

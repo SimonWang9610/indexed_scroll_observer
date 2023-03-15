@@ -1,5 +1,3 @@
-import 'dart:math';
-
 import 'package:flutter/rendering.dart';
 import 'package:positioned_scroll_observer/src/observer/layout_observer.dart';
 import 'package:positioned_scroll_observer/src/observer/observer_interface.dart';
@@ -7,6 +5,7 @@ import 'package:positioned_scroll_observer/src/observer/observer_interface.dart'
 import 'scroll_extent.dart';
 import 'onstage_strategy.dart';
 import 'item_estimation.dart';
+import 'util.dart';
 
 abstract class SliverScrollObserver extends LayoutObserver<RenderSliver>
     with ObserverScrollInterface, ObserverScrollImpl {
@@ -22,7 +21,10 @@ abstract class SliverScrollObserver extends LayoutObserver<RenderSliver>
 
   /// [isRevealed] may use this to calculate the trailing offset for an item
   @override
-  Axis get axis => renderObject!.constraints.axis;
+  Axis get axis {
+    assert(isActive);
+    return renderObject!.constraints.axis;
+  }
 
   /// if the viewport is overlapped by the previous [RenderSliver],
   /// the trailing edge should subtract the overlapped area
@@ -138,38 +140,21 @@ class MultiChildSliverObserver extends SliverScrollObserver
         assert(sizes.containsKey(currentParentData.index));
         //! not using [RenderBox.size] directly to avoid assertions failed in debug mode
 
-        final item = ItemScrollExtent.multi(currentParentData);
+        final item = ItemScrollExtent.fromSliverData(currentParentData);
 
         items[item.index] = item;
 
-        totalExtent += item.mainAxisOffset;
-        count++;
+        totalExtent += getMainAxisExtent(item.index);
 
-        first = _lessFirst(first, item.index);
-        last = _greaterLast(last, item.index);
+        first = lessFirst(first, item.index);
+        last = greaterLast(last, item.index);
 
         child = currentParentData.nextSibling;
+        count++;
       }
 
       updateRange(first, last);
-
       updateEstimation(totalExtent, count);
     }
-  }
-}
-
-int _lessFirst(int? first, int current) {
-  if (first == null) {
-    return current;
-  } else {
-    return min(first, current);
-  }
-}
-
-int _greaterLast(int? last, int current) {
-  if (last == null) {
-    return current;
-  } else {
-    return max(last, current);
   }
 }
