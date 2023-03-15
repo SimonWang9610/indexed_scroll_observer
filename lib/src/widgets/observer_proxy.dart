@@ -1,52 +1,12 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
+import 'package:positioned_scroll_observer/positioned_scroll_observer.dart';
+import 'package:positioned_scroll_observer/src/observer/layout_observer.dart';
 
-import '../observer/scroll_observer.dart';
-
-/// A widget to proxy the child layout to [ScrollObserver.sliver]
-///
-/// after laid out [child], [RenderObserverProxy] would invoke [ScrollObserver.onLayout]
-/// to bind its closest [RenderSliver] with [observer] and tell [observer] its [Size]
-///
-/// if [observer] has multi child, [SliverIndexedProxyDelegate] would be responsible for
-/// invoking [ScrollObserver.onFinishLayout] to tell [observer] to collect [ItemScrollExtent] for items
-/// that have been laid out
-///
-/// if [observer] only has one child, [RenderObserverProxy] would invoke [ScrollObserver.onFinishLayout] instantly
-///
-/// Usage:
-///
-/// for [SliverList]/[SliverGrid], please use [IndexedChildBuilderDelegate]/[IndexedChildListDelegate]
-/// to wrap each item in [ObserverProxy]
-///
-/// for [SliverAppBar], use like:
-///
-/// {@tool snippets}
-/// ```dart
-/// final IndexedScrollController _controller =
-///       IndexedScrollController.multiObserver();
-///
-/// <...other code>
-///
-/// SliverAppBar.medium(
-///   pinned: true,
-///   floating: true,
-///   automaticallyImplyLeading: false,
-///   title: ObserverProxy(
-///     observer: _controller.createOrObtainObserver(
-///       hasMultiChild: false,
-///       observerKey: appbarObserverKey,
-///     ),
-///     child: const Text("Pinned App bar"),
-///   ),
-/// )
-/// <...other code>
-///
-/// ```
-/// {@end tool}
 class ObserverProxy extends SingleChildRenderObjectWidget {
-  final ScrollObserver? observer;
+  final LayoutObserver observer;
+
   const ObserverProxy({
     super.key,
     super.child,
@@ -54,29 +14,111 @@ class ObserverProxy extends SingleChildRenderObjectWidget {
   });
 
   @override
-  RenderObserverProxy createRenderObject(BuildContext context) =>
-      RenderObserverProxy(
-        observer: observer,
+  RenderScrollObserverProxy createRenderObject(BuildContext context) {
+    assert(
+      () {
+        return observer is LayoutObserver<RenderSliver> ||
+            observer is LayoutObserver<MultiChildRenderBox> ||
+            observer is LayoutObserver<SingleChildRenderBox>;
+      }(),
+      "Currently, [ObserverProxy] only supports four kinds of observers: [MultiChildSliverObserver], "
+      "[SingleChildSliverObserver] for slivers and [MultiChildBoxObserver] and [SingleChildBoxObserver], "
+      "for boxes.",
+    );
+
+    if (observer is LayoutObserver<RenderSliver>) {
+      return RenderScrollObserverProxy<RenderSliver>(
+        observer: observer as LayoutObserver<RenderSliver>,
       );
+    } else if (observer is LayoutObserver<MultiChildRenderBox>) {
+      return RenderScrollObserverProxy<MultiChildRenderBox>(
+        observer: observer as LayoutObserver<MultiChildRenderBox>,
+      );
+    } else {
+      return RenderScrollObserverProxy<SingleChildRenderBox>(
+        observer: observer as LayoutObserver<SingleChildRenderBox>,
+      );
+    }
+  }
 
   @override
   void updateRenderObject(
-      BuildContext context, covariant RenderObserverProxy renderObject) {
+      BuildContext context, covariant RenderScrollObserverProxy renderObject) {
     renderObject.observer = observer;
   }
 }
 
-class RenderObserverProxy extends RenderProxyBox {
-  RenderObserverProxy({
+class SliverObserverProxy extends SingleChildRenderObjectWidget {
+  final SliverScrollObserver observer;
+
+  const SliverObserverProxy({
+    super.key,
+    super.child,
+    required this.observer,
+  });
+
+  @override
+  RenderScrollObserverProxy createRenderObject(BuildContext context) {
+    return RenderScrollObserverProxy<RenderSliver>(
+      observer: observer,
+    );
+  }
+
+  @override
+  void updateRenderObject(
+      BuildContext context, covariant RenderScrollObserverProxy renderObject) {
+    renderObject.observer = observer;
+  }
+}
+
+class BoxObserverProxy extends SingleChildRenderObjectWidget {
+  final BoxScrollObserver observer;
+
+  const BoxObserverProxy({
+    super.key,
+    super.child,
+    required this.observer,
+  });
+
+  @override
+  RenderScrollObserverProxy createRenderObject(BuildContext context) {
+    if (observer.hasMultiChild) {
+      return RenderScrollObserverProxy<MultiChildRenderBox>(
+        observer: observer as LayoutObserver<MultiChildRenderBox>,
+      );
+    } else {
+      return RenderScrollObserverProxy<SingleChildRenderBox>(
+        observer: observer as LayoutObserver<SingleChildRenderBox>,
+      );
+    }
+  }
+
+  @override
+  void updateRenderObject(
+      BuildContext context, covariant RenderScrollObserverProxy renderObject) {
+    renderObject.observer = observer;
+  }
+}
+
+class RenderScrollObserverProxy<T extends RenderObject> extends RenderProxyBox {
+  LayoutObserver<T>? _observer;
+
+  RenderScrollObserverProxy({
     RenderBox? child,
-    ScrollObserver? observer,
+    LayoutObserver<T>? observer,
   })  : _observer = observer,
         super(child);
 
-  ScrollObserver? _observer;
-
-  set observer(ScrollObserver? newObserver) {
+  set observer(LayoutObserver<T>? newObserver) {
     if (_observer == newObserver) return;
+
+    assert(
+      _observer == null || _observer.runtimeType == newObserver.runtimeType,
+      "The new observer does not have the same runtimeType (${newObserver.runtimeType}) "
+      "compare to the previous observer (${_observer.runtimeType}).",
+    );
+    _observer?.clear();
+
     _observer = newObserver;
     markNeedsLayout();
     markNeedsSemanticsUpdate();
@@ -86,85 +128,62 @@ class RenderObserverProxy extends RenderProxyBox {
   void performLayout() {
     super.performLayout();
 
-    final sliver = _findParentSliver();
+    final ancestor = _findAncestorRenderObject();
 
-    if (sliver != null) {
-      _observer?.onLayout(
-        sliver,
+    if (ancestor != null) {
+      _observer!.onLayout(
+        ancestor,
         size: size,
-        parentData: _findSliverParentData(sliver),
+        parentData: _findDesiredParentData(ancestor),
       );
     }
   }
 
-  /// when painting [child], [child] must be laid out
-  /// so we could invoke [ScrollObserver.doFinishLayout] safely
   @override
   void paint(PaintingContext context, Offset offset) {
     super.paint(context, offset);
 
     if (_observer != null && _observer!.isObserving) {
-      _observer!.doFinishLayout();
+      _observer?.doFinishLayout();
     }
   }
 
-  /// find the closest [RenderSliver] so that [_observer] could bind it when invoking [ScrollObserver.onLayout]
-  /// typically, there might have other [RenderObject] between [RenderSliver] and [RenderObserverProxy]
-  /// consequently, [parentData] may not be correct for [_observer] to collect [child]'s index and scroll offset
-  RenderSliver? _findParentSliver() {
+  T? _findAncestorRenderObject() {
     if (child == null || _observer == null || !_observer!.isObserving) {
       return null;
     }
 
-    AbstractNode? parentSliver = parent;
+    AbstractNode? ancestor = parent;
 
-    int traceCount = 0;
-
-    while (
-        traceCount < _observer!.maxTraceCount && parentSliver is RenderObject) {
-      if (parentSliver is RenderSliver) {
-        break;
+    while (ancestor != null) {
+      if (ancestor is T) {
+        return ancestor;
       } else {
-        parentSliver = parentSliver.parent;
-        traceCount++;
+        ancestor = ancestor.parent;
       }
     }
-
-    assert(
-        parentSliver != null,
-        "Cannot find a [RenderObject] who has [SliverMultiBoxAdaptorParentData] "
-        "between its ancestors and $this during ${_observer!.maxTraceCount} times tracing.");
-
-    if (parentSliver == null || parentSliver is! RenderSliver) return null;
-    return parentSliver;
+    return null;
   }
 
-  ParentData? _findSliverParentData(RenderSliver sliver) {
-    if (parentData is SliverMultiBoxAdaptorParentData ||
-        !_observer!.hasMultiChild) {
-      return parentData!;
-    } else {
-      RenderObject node = parent as RenderObject;
-      ParentData? data;
-      int traceCount = 0;
-
-      while (node != sliver && traceCount < _observer!.maxTraceCount) {
-        data = node.parentData!;
-
-        if (data is SliverMultiBoxAdaptorParentData) {
-          break;
-        } else {
-          node = node.parent! as RenderObject;
-          traceCount++;
-        }
-      }
-
-      assert(
-        data != null,
-        "Cannot find a [RenderObject] who has [SliverMultiBoxAdaptorParentData] "
-        "between its ancestor $sliver and $this during ${_observer!.maxTraceCount} times tracing",
-      );
-      return data!;
+  ParentData? _findDesiredParentData(RenderObject ancestor) {
+    if (_observer == null ||
+        !_observer!.hasMultiChild ||
+        _observer!.isDesiredParentData(parentData)) {
+      return parentData;
     }
+
+    RenderObject? node = parent as RenderObject?;
+    ParentData? ancestorData = node?.parentData;
+
+    while (ancestorData != null && node != ancestor) {
+      if (_observer!.isDesiredParentData(ancestorData)) {
+        return ancestorData;
+      } else {
+        node = node?.parent as RenderObject?;
+        ancestorData = node?.parentData;
+      }
+    }
+
+    return null;
   }
 }

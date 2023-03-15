@@ -78,6 +78,18 @@ class _MyHomePageState extends State<MyHomePage> {
               },
               child: const Text("Encapsulated CustomScrollView Usage"),
             ),
+            OutlinedButton(
+              onPressed: () {
+                context.push(const SingleChildScrollExample());
+              },
+              child: const Text("SingleChildScrollView Usage"),
+            ),
+            OutlinedButton(
+              onPressed: () {
+                context.push(const ListWheelExample());
+              },
+              child: const Text("List Wheel Usage"),
+            ),
           ],
         ),
       ),

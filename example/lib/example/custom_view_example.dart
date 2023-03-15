@@ -13,16 +13,19 @@ class CustomViewExample extends StatefulWidget {
 class _CustomViewExampleState extends State<CustomViewExample> {
   int _itemCount = 30;
 
-  final PositionedScrollController _controller =
-      PositionedScrollController.multiObserver();
+  final ScrollController _controller = ScrollController();
 
-  final keepAliveObserverKey = "keepAlive";
-  final gridObserverKey = "grid";
-  final listObserverKey = "list";
-  final appbarObserverKey = "appbar";
+  late final keepAlive = ScrollObserver.sliverMulti(itemCount: _itemCount);
+  late final grid = ScrollObserver.sliverMulti(itemCount: _itemCount);
+  late final list = ScrollObserver.sliverMulti(itemCount: _itemCount);
+  late final appbar = ScrollObserver.sliverSingle();
 
   @override
   void dispose() {
+    keepAlive.clear();
+    grid.clear();
+    list.clear();
+    appbar.clear();
     _controller.dispose();
     super.dispose();
   }
@@ -37,35 +40,43 @@ class _CustomViewExampleState extends State<CustomViewExample> {
       body: Column(
         children: [
           SliverJumpWidget(
-            label: keepAliveObserverKey,
-            onJump: (index) => _controller.jumpToIndex(
-              index,
-              whichObserver: keepAliveObserverKey,
-            ),
+            label: "KeepAlive Jump",
+            onJump: (index) {
+              keepAlive.jumpToIndex(
+                index,
+                position: _controller.position,
+              );
+            },
           ),
           SliverJumpWidget(
-            label: gridObserverKey,
-            onJump: (index) => _controller.jumpToIndex(
-              index,
-              whichObserver: gridObserverKey,
-            ),
-          ),
-          SliverJumpWidget(
-            label: listObserverKey,
-            onJump: (index) => _controller.jumpToIndex(
-              index,
-              whichObserver: listObserverKey,
-            ),
-          ),
-          SliverJumpWidget(
-            label: appbarObserverKey,
+            label: "AppBar Animate",
             force: true,
-            onJump: (index) => _controller.animateToIndex(
-              index,
-              whichObserver: appbarObserverKey,
-              duration: const Duration(milliseconds: 120),
-              curve: Curves.bounceInOut,
-            ),
+            onJump: (index) {
+              appbar.animateToIndex(
+                index,
+                position: _controller.position,
+                duration: const Duration(milliseconds: 200),
+                curve: Curves.bounceIn,
+              );
+            },
+          ),
+          SliverJumpWidget(
+            label: "Grid Jump",
+            onJump: (index) {
+              grid.jumpToIndex(
+                index,
+                position: _controller.position,
+              );
+            },
+          ),
+          SliverJumpWidget(
+            label: "List Jump",
+            onJump: (index) {
+              list.jumpToIndex(
+                index,
+                position: _controller.position,
+              );
+            },
           ),
           Expanded(
             child: CustomScrollView(
@@ -76,27 +87,21 @@ class _CustomViewExampleState extends State<CustomViewExample> {
                   delegate: PositionedChildBuilderDelegate(
                     childCount: _itemCount,
                     (context, index) => IndexedKeepAliveItem(
-                      label: keepAliveObserverKey,
+                      label: "KeepAlive",
                       index: index,
                     ),
                     addRepaintBoundaries: false,
                     addSemanticIndexes: true,
                     addAutomaticKeepAlives: true,
-                    observer: _controller.createOrObtainObserver(
-                      itemCount: _itemCount,
-                      observerKey: keepAliveObserverKey,
-                    ),
+                    observer: keepAlive,
                   ),
                 ),
                 SliverAppBar.medium(
                   pinned: true,
                   floating: true,
                   automaticallyImplyLeading: false,
-                  title: ObserverProxy(
-                    observer: _controller.createOrObtainObserver(
-                      hasMultiChild: false,
-                      observerKey: appbarObserverKey,
-                    ),
+                  title: SliverObserverProxy(
+                    observer: appbar,
                     child: const Text("Pinned App bar"),
                   ),
                 ),
@@ -118,10 +123,7 @@ class _CustomViewExampleState extends State<CustomViewExample> {
                       addRepaintBoundaries: false,
                       addSemanticIndexes: true,
                       addAutomaticKeepAlives: true,
-                      observer: _controller.createOrObtainObserver(
-                        itemCount: _itemCount,
-                        observerKey: gridObserverKey,
-                      ),
+                      observer: grid,
                     ),
                     gridDelegate:
                         const SliverGridDelegateWithFixedCrossAxisCount(
@@ -133,19 +135,15 @@ class _CustomViewExampleState extends State<CustomViewExample> {
                   delegate: PositionedChildBuilderDelegate(
                     childCount: _itemCount,
                     (context, index) => ListTile(
-                      key: ValueKey<int>(index),
-                      leading: CircleAvatar(
-                        child: Text(listObserverKey),
+                      leading: const CircleAvatar(
+                        child: Text("List"),
                       ),
-                      title: Text("$listObserverKey $index"),
+                      title: Text("list $index"),
                     ),
                     addRepaintBoundaries: false,
                     addSemanticIndexes: true,
                     addAutomaticKeepAlives: true,
-                    observer: _controller.createOrObtainObserver(
-                      itemCount: _itemCount,
-                      observerKey: listObserverKey,
-                    ),
+                    observer: list,
                   ),
                 ),
               ],
@@ -155,7 +153,11 @@ class _CustomViewExampleState extends State<CustomViewExample> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          _controller.debugCheckOnstageItems();
+          final scrollExtent = ScrollExtent.fromPosition(_controller.position);
+          keepAlive.debugCheckOnstageItems(scrollExtent: scrollExtent);
+          appbar.debugCheckOnstageItems(scrollExtent: scrollExtent);
+          grid.debugCheckOnstageItems(scrollExtent: scrollExtent);
+          list.debugCheckOnstageItems(scrollExtent: scrollExtent);
         },
         child: const Icon(Icons.visibility_off_rounded),
       ),

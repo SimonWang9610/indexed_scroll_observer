@@ -46,47 +46,73 @@ class ItemScrollExtent {
   final double mainAxisOffset;
   final double? crossAxisOffset;
 
+  /// the hashCode of [ParentData] for this item;
+  final int dataHashCode;
+
   const ItemScrollExtent({
     required this.index,
     required this.mainAxisOffset,
+    required this.dataHashCode,
     this.crossAxisOffset,
   });
 
+  /// placeholder for observers implemented with [SingleChildEstimation]
   factory ItemScrollExtent.empty() =>
-      const ItemScrollExtent(index: 0, mainAxisOffset: 0);
+      const ItemScrollExtent(index: 0, mainAxisOffset: 0, dataHashCode: -1);
 
-  factory ItemScrollExtent.multi(SliverMultiBoxAdaptorParentData parentData) {
+  /// used for [SliverScrollObserver] implemented with [MultiChildEstimation]
+  factory ItemScrollExtent.fromSliverData(
+      SliverMultiBoxAdaptorParentData parentData) {
     return ItemScrollExtent(
       index: parentData.index!,
       mainAxisOffset: parentData.layoutOffset!,
+      dataHashCode: parentData.hashCode,
       crossAxisOffset: parentData is SliverGridParentData
           ? parentData.crossAxisOffset!
           : null,
     );
   }
 
-  factory ItemScrollExtent.single(
-      SliverPhysicalParentData parentData, Size size,
-      {required Axis axis}) {
+  /// used for [BoxScrollObserver] implemented with [MultiChildEstimation]
+  factory ItemScrollExtent.fromBoxData(
+      int index, BoxParentData parentData, Axis axis) {
     double mainAxisOffset = 0.0;
     double crossAxisOffset = 0.0;
 
     switch (axis) {
       case Axis.vertical:
-        mainAxisOffset = parentData.paintOffset.dy;
-        crossAxisOffset = parentData.paintOffset.dx;
+        mainAxisOffset = parentData.offset.dy;
+        crossAxisOffset = parentData.offset.dx;
         break;
       case Axis.horizontal:
-        mainAxisOffset = parentData.paintOffset.dx;
-        crossAxisOffset = parentData.paintOffset.dy;
+        mainAxisOffset = parentData.offset.dx;
+        crossAxisOffset = parentData.offset.dy;
         break;
     }
 
     return ItemScrollExtent(
-      index: 0,
+      index: index,
+      dataHashCode: parentData.hashCode,
       mainAxisOffset: mainAxisOffset,
       crossAxisOffset: crossAxisOffset,
     );
+  }
+
+  /// get the scroll offset relative to its ancestor [RenderObject]
+  /// based on its ancestor's [origin].
+  double getLeadingOffset(double origin) {
+    return origin + mainAxisOffset;
+  }
+
+  /// get the trailing scroll offset based on the given [Axis] and its leading scroll offset [leading].
+  double getTrailingOffset(double leading,
+      {required Axis axis, required Size size}) {
+    switch (axis) {
+      case Axis.vertical:
+        return size.height + leading;
+      case Axis.horizontal:
+        return size.width + leading;
+    }
   }
 
   @override

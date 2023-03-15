@@ -15,9 +15,8 @@ class OfficialReorderableListExample extends StatefulWidget {
 class _OfficialReorderableListExampleState
     extends State<OfficialReorderableListExample> {
   final ScrollController _controller = ScrollController();
-  late final ScrollObserver _observer = ScrollObserver.multiChild(
-    itemCount: _items.length,
-  )
+
+  late final _observer = ScrollObserver.sliverMulti(itemCount: _items.length)
     ..targetToRenderIndex = _toRenderIndex
     ..renderToTargetIndex = _toTargetIndex;
 
@@ -91,7 +90,7 @@ class _OfficialReorderableListExampleState
               onReorder: _onReorder,
               onReorderStart: _pauseObserving,
               onReorderEnd: _resumeObserving,
-              itemBuilder: (_, index) => ObserverProxy(
+              itemBuilder: (_, index) => SliverObserverProxy(
                 key: ValueKey<int>(index),
                 observer: _observer,
                 child: ListTile(

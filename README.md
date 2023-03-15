@@ -19,178 +19,139 @@ and the Flutter guide for
 1. using `jumpToIndex` and `animateToIndex` to scroll to the specific `index`
 2. No breaking for your current sliver widgets, e.g., `ListView`/`GridView`, `SliverList`/`SliverGrid`/`SliverAppBar`
 3. support almost official `RenderSliver` that has single child or multi children
+4. support `SingleChildScrollView` and `ListWheelScrollView`
+
+## Getting started
+
+1. First, creating and binding the observer to all items. (See [box scroll observer](#usage-for-scroll-views-that-do-not-rely-on-rendersliver-eg-singlechildscrollview-and-listwheelscrollview) and [sliver scroll observer](#usage-for-slivers-eg-sliverlist-slivergrid-and-so-on))
+
+2. then, using the observer like:
+
+   ```dart
+   _observer.jumpToIndex(
+       index,
+       position: _controller.position,
+   );
+
+   _observer.animateToIndex(
+       index,
+       position: _controller.position,
+       duration: const Duration(milliseconds: 200),
+       curve: Curves.fastLinearToSlowEaseIn,
+   );
+   ```
+
+### Usage for scroll views that do not rely on `RenderSliver`, e.g., `SingleChildScrollView` and `ListWheelScrollView`
+
+<div style="float: left">
+    <img src="https://github.com/SimonWang9610/indexed_scroll_observer/blob/main/snapshots/single_scroll_view.gif?raw=true" width="320">
+    <img src="https://github.com/SimonWang9610/indexed_scroll_observer/blob/main/snapshots/list_wheel.gif?raw=true" width="320">
+</div>
+
+1. create a `BoxScrollObserver` for observing the box with multi children.
+
+   ```dart
+     final ScrollController _controller = ScrollController();
+     late final _observer = ScrollObserver.boxMulti(
+       axis: _axis,
+       itemCount: 30,
+     );
+   ```
+
+2. bind the observer to the box's children. (Using `ObserverProxy` to wrap each item).
+
+   ```dart
+   SingleChildScrollView(
+     controller: _controller,
+     scrollDirection: _axis,
+     child: Column(
+       children: [
+         for (int i = 0; i < 30; i++)
+           ObserverProxy(
+             observer: _observer,
+             child: DecoratedBox(
+               decoration: BoxDecoration(border: Border.all()),
+               child: SizedBox(
+                 height: 100,
+                 width: 100,
+                 child: Center(
+                   child: Text("Column item $i"),
+                 ),
+               ),
+             ),
+           ),
+         ],
+       ),
+     );
+   ```
+
+### Usage for slivers, e.g., `SliverList`, `SliverGrid` and so on.
 
 <div style="float: left">
     <img src="https://github.com/SimonWang9610/indexed_scroll_observer/blob/main/snapshots/custom.gif?raw=true" width="320">
     <img src="https://github.com/SimonWang9610/indexed_scroll_observer/blob/main/snapshots/grid.gif?raw=true" width="320">
     <img src="https://github.com/SimonWang9610/indexed_scroll_observer/blob/main/snapshots/reorderable.gif?raw=true" width="320">
     <img src="https://github.com/SimonWang9610/indexed_scroll_observer/blob/main/snapshots/separated.gif?raw=true" width="320">
-    <img src="https://github.com/SimonWang9610/indexed_scroll_observer/blob/main/snapshots/lis.gif?raw=true">
+
 </div>
 
-## Getting started
+1. create a `SliverScrollObserver` for observing the sliver with multi children.
 
-### Use `ScrollController`
+   ```dart
+     final ScrollController _controller = ScrollController();
+     late final _observer = ScrollObserver.sliverMulti(itemCount: 30);
+   ```
 
-1. create a `ScrollObserver`
+2. bind the observer to each item for the sliver.
 
-```dart
-  final ScrollController _controller = ScrollController();
-  late final ScrollObserver _observer =
-      ScrollObserver.multiChild(itemCount: _itemCount);
-```
-
-2. bind `ScrollObserver` with the item widget/builder that must be wrapped by `ObserverProxy`
-
-```dart
-    ListView.builder(
-      controller: _controller,
-      itemBuilder: (context, index) => ObserverProxy(
-        observer: _observer,
-        child: ListTile(
-          key: ValueKey<int>(index),
-          leading: const CircleAvatar(
-            child: Text("L"),
-          ),
-          title: Text("Positioned List Example $index"),
-        ),
-      ),
-      itemCount: _itemCount,
-    );
-```
-
-3. use `jumpToIndex`/`animateToIndex`
-
-```dart
-_observer.jumpToIndex(
-    index,
-    position: _controller.position,
-);
-
- _observer.animateToIndex(
-    index,
-    position: _controller.position,
-    duration: const Duration(milliseconds: 200),
-    curve: Curves.fastLinearToSlowEaseIn,
-);
-```
-
-There you go
-
-### Use `PositionedScrollController` for `ListView` that only has a single `RenderSliver`
-
-1. create `PositionedScrollController`
-
-```dart
-final PositionedScrollController _controller =
-      PositionedScrollController.singleObserver();
-```
-
-2. bind `ScrollObserver` to item widget/builder
-
-```dart
-    ListView.builder(
-      controller: _controller,
-      itemBuilder: (context, index) => ObserverProxy(
-        observer: _controller.createOrObtainObserver(
-            itemCount: _itemCount,
-        ),
-        child: ListTile(
-          key: ValueKey<int>(index),
-          leading: const CircleAvatar(
-            child: Text("L"),
-          ),
-          title: Text("Positioned List Example $index"),
-        ),
-      ),
-      itemCount: _itemCount,
-    );
-```
-
-3. use `jumpToIndex`/`animateToIndex`
-
-```dart
-_controller.jumpToIndex(index);
-
- _controller.animateToIndex(
-    index,
-    duration: const Duration(milliseconds: 200),
-    curve: Curves.fastLinearToSlowEaseIn,
-);
-```
-
-There you go
+   ```dart
+       ListView.builder(
+         controller: _controller,
+         itemBuilder: (context, index) => SliverObserverProxy(
+           observer: _observer,
+           child: ListTile(
+             key: ValueKey<int>(index),
+             leading: const CircleAvatar(
+               child: Text("L"),
+             ),
+             title: Text("Positioned List Example $index"),
+           ),
+         ),
+         itemCount: _itemCount,
+       );
+   ```
 
 > For `ListView.custom` and `GridView.custom`, you could also use `PositionedChildListDelegate` and `PositionedChildBuilderDelegate` for wrapping items in `ObserverProxy` conveniently
 
 ## Usage
 
-1. The item widget/builder must be wrapped using `ObserverProxy`
-2. `ScrollObserver` would observe all children for slivers, e.g., `SliverList`/`SliverGrid`,
-   so all items should have the same `ScrollObserver` instead of creating a different `ScrollObserver` for each item.
+### For observing slivers:
 
-### Observing a single sliver
+1. observing a sliver with single child, using `ScrollObserver.sliverSingle` to create.
+2. observing a sliver with multi children, using `ScrollObserver.sliverMulti` to create.
 
-- if you want to use `ScrollController` directly,
-  you could create a standalone `ScrollObserver` by using:
+### For observing other scroll views that have no sliver descendants.
 
-  1. `ScrollObserver.singleChild` for a sliver with a single child, such as `SliverAppBar`
-  2. `ScrollObserver.multiChild` for a sliver with multi children, such as `SliverList`/`SliverGrid`
+1. observing a box with single child, using `ScrollObserver.boxSingle` to create. (rare cases and need more testing)
+2. observing a box with multi children, using `ScrollObserver.boxMulti` to create.
 
-- if you prefer using `PositionedScrollController` that would manage `ScrollObserver` created by you, you could create a controller by `PositionedScrollController.singleObserver`. Then, you could create a standalone `ScrollObserver` by using: `PositionedScrollController.createOrObtainObserver`:
-  1. `hasMultiChild` indicates if this observer is for a sliver with multi children
+### Pay attention
 
-### Observing multiple slivers (typically for `CustomScrollView` that has multiple slivers)
+- **The item widget/builder must be wrapped using `ObserverProxy`**
+- All observers would `normalizeIndex` to ensure the `index` is in a valid range determined by `itemCount` of observers, so developers should also update observers' `itemCount` when the scroll views' item count changes.
+- Items that have the same `RenderObject` observed by an observer should share the same observer instance, instead of creating different observers for each item.
+- When using `ScrollObserver.boxMulti`, `axis` is required so that the observer could estimate the scroll offset along the correct main axis.
 
-- if using `ScrollController`, you have to create multiple `ScrollObserver`s manually and bind them to different slivers. Each sliver should have an unique `ScrollObserver` that must adopt its type: single child or multi children
+## Examples:
 
-- if using `PositionedScrollController`, you could create `PositionedScrollController.multiObserver` to manage
-  multiple `ScrollObserver`s automatically. Then, using `PositionedScrollController.createOrObtainObserver` to create a corresponding `ScrollObserver` for each sliver.
+- [ListView example](https://github.com/SimonWang9610/indexed_scroll_observer/blob/main/example/lib/example/official_list_example.dart)
+- [GridView example](https://github.com/SimonWang9610/indexed_scroll_observer/blob/main/example/lib/example/grid_example.dart)
+- [CustomScrollView example](https://github.com/SimonWang9610/indexed_scroll_observer/blob/main/example/lib/example/custom_view_example.dart)
+- [ReorderableListView example](https://github.com/SimonWang9610/indexed_scroll_observer/blob/main/example/lib/example/reorderable_list_example.dart)
+- [ListWheelScrollView example](https://github.com/SimonWang9610/indexed_scroll_observer/blob/main/example/lib/example/list_wheel_example.dart)
+- [SingleChildScrollView example](https://github.com/SimonWang9610/indexed_scroll_observer/blob/main/example/lib/example/single_child_scroll_view_example.dart)
 
-### `PositionedScrollController`
-
-It has all methods of `ScrollController` by extends `ScrollController` and then help you to manage `ScrollObserver`.
-
-- `PositionedScrollController.singleObserver` manage only a single `ScrollObserver` that may have single child or multi children
-- `PositionedScrollController.multiObserver` manage multiple `ScrollObserver` that may have single child or multi children
-
-- `createOrObtainObserver`
-
-| parameter           | required | default | description                                                                                                                                                                                                                                                                                                                                                                              |
-| ------------------- | -------- | ------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| hasMultiChild       | YES      | true    | determine if the `ScrollObserver` is for a sliver that has multi children                                                                                                                                                                                                                                                                                                                |
-| itemCount           | No       | null    | the sliver's item count. if null, the observer would behave as a infinite scroll view                                                                                                                                                                                                                                                                                                    |
-| maxTraceCount       | NO       | null    | the maximum count when tracing `ObserverProxy`'s ancestor `RenderSliver` and `ParentData`. Default to `50` internally, only setting it when you ensure you need to trace more nodes.                                                                                                                                                                                                     |
-| targetToRenderIndex | NO       | null    | sometimes, the target index to which users want to scroll may not be same as the current render index. By using [targetToRenderIndex], users could define how to map the target index to a render index, e.g., `ListView.separated`/`ReorderableListView`. Users could set it on an instance of `ScrollObserver` not only when creating it. Setting it only when you ensure you need it. |
-| renderToTargetIndex | NO       | null    | same as `targetToRenderIndex` but in converting reversely.                                                                                                                                                                                                                                                                                                                               |
-
-- `jumpToIndex` and `animateToIndex`. (should pass `duration` and `Curve` if using `animateToIndex`)
-
-| parameter     | required | default | description                                                                                                                   |
-| ------------- | -------- | ------- | ----------------------------------------------------------------------------------------------------------------------------- |
-| index         | YES      | N/A     | the item's index for a sliver. No effects if `ScrollObserver.hasMultiChild` is `false`                                        |
-| whichObserver | NO       | null    | the specific `ScrollObserver` that is observing a sliver. It is required if `ScrollObserver.hasMultiChild` is `true`          |
-| closeToEdge   | YES      | `true`  | try to scroll `index` at the leading edge if not over scrolling; otherwise, only ensure the `index` is visible on the screen. |
-
-- `isVisible`: check if the given index is painted on the screen.
-
-| parameter     | required | default | description                                                                                                                |
-| ------------- | -------- | ------- | -------------------------------------------------------------------------------------------------------------------------- |
-| index         | YES      | N/A     | the specify `index` you want to check visibility                                                                           |
-| whichObserver | NO       | null    | the associated `ScrollObserver` with the `index`. Required if the controller is `PositionedScrollController.multiObserver` |
-
-### `ScrollObserver`
-
-- `ScrollObserver.multiChild`: create a `ScrollObserver` that observes a `RenderSliver` with multi children
-- `ScrollObserver.singleChild`: create a `ScrollObserver` that observes a `RenderSliver` with a single child
-
-- `jumpToIndex` and `animateToIndex`. (should pass `duration` and `Curve` if using `animateToIndex`)
-
-| parameter   | required | default | description                                                                                                                   |
-| ----------- | -------- | ------- | ----------------------------------------------------------------------------------------------------------------------------- |
-| index       | YES      | N/A     | the item's index for a sliver. No effects if `ScrollObserver.hasMultiChild` is `false`                                        |
-| closeToEdge | YES      | `true`  | try to scroll `index` at the leading edge if not over scrolling; otherwise, only ensure the `index` is visible on the screen. |
-| position    | YES      | N/A     | the `ScrollPosition` attached to a `ScrollController`                                                                         |
+`ScrollController` |
 
 ### My other packages
 
