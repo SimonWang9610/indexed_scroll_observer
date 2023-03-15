@@ -78,7 +78,7 @@ class _SingleChildScrollExampleState extends State<SingleChildScrollExample> {
               child: Column(
                 children: [
                   for (int i = 0; i < 30; i++)
-                    BoxObserverProxy(
+                    ObserverProxy(
                       observer: _observer,
                       child: DecoratedBox(
                         decoration: BoxDecoration(border: Border.all()),

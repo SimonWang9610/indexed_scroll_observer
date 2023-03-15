@@ -90,7 +90,7 @@ class _OfficialReorderableListExampleState
               onReorder: _onReorder,
               onReorderStart: _pauseObserving,
               onReorderEnd: _resumeObserving,
-              itemBuilder: (_, index) => SliverObserverProxy(
+              itemBuilder: (_, index) => ObserverProxy(
                 key: ValueKey<int>(index),
                 observer: _observer,
                 child: ListTile(

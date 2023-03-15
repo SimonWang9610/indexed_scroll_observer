@@ -218,8 +218,6 @@ mixin ObserverScrollImpl on ObserverScrollInterface {
   }) async {
     index = targetToRenderIndex?.call(index) ?? index;
 
-    print("animate to: $index");
-
     if (_revealing != null && !_revealing!.isCompleted) {
       return _revealing!.future.then(
         (canSchedule) {

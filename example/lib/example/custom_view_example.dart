@@ -100,7 +100,7 @@ class _CustomViewExampleState extends State<CustomViewExample> {
                   pinned: true,
                   floating: true,
                   automaticallyImplyLeading: false,
-                  title: SliverObserverProxy(
+                  title: ObserverProxy(
                     observer: appbar,
                     child: const Text("Pinned App bar"),
                   ),

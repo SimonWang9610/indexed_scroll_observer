@@ -30,7 +30,7 @@ class _OfficialListExampleState extends State<OfficialListExample> {
   Widget build(BuildContext context) {
     ListView.builder(
       controller: _controller,
-      itemBuilder: (context, index) => SliverObserverProxy(
+      itemBuilder: (context, index) => ObserverProxy(
         observer: _observer,
         child: ListTile(
           key: ValueKey<int>(index),
@@ -89,7 +89,7 @@ class _OfficialListExampleState extends State<OfficialListExample> {
           Expanded(
             child: ListView.builder(
               controller: _controller,
-              itemBuilder: (context, index) => SliverObserverProxy(
+              itemBuilder: (context, index) => ObserverProxy(
                 observer: _observer,
                 child: ListTile(
                   key: ValueKey<int>(index),

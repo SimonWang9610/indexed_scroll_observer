@@ -18,8 +18,13 @@ and the Flutter guide for
 
 1. using `jumpToIndex` and `animateToIndex` to scroll to the specific `index`
 2. No breaking for your current sliver widgets, e.g., `ListView`/`GridView`, `SliverList`/`SliverGrid`/`SliverAppBar`
-3. support almost official `RenderSliver` that has single child or multi children
-4. support `SingleChildScrollView` and `ListWheelScrollView`
+
+- [x] ListView
+- [x] GridView
+- [x] CustomScrollView
+- [x] SingleChildScrollView
+- [x] ListWheelScrollView
+- [ ] NestedScrollView (waiting testing)
 
 ## Getting started
 
@@ -107,7 +112,7 @@ and the Flutter guide for
    ```dart
        ListView.builder(
          controller: _controller,
-         itemBuilder: (context, index) => SliverObserverProxy(
+         itemBuilder: (context, index) => ObserverProxy(
            observer: _observer,
            child: ListTile(
              key: ValueKey<int>(index),
