@@ -15,38 +15,26 @@ const double _kPixelDiffTolerance = 5;
 const Duration _kDefaultAdjustDuration = Duration(milliseconds: 60);
 
 abstract class ObserverScrollInterface {
-  /// if this observer is observing multi children for a [RenderSliver]
-  bool get hasMultiChild;
-
   /// if some children have been laid out completely,
   /// it indicates some required information to estimate scroll offset for a certain item is ready to use.
   /// if [firstLayoutFinished] is false, it would throw errors to report illegal usage.
   bool get firstLayoutFinished;
 
   /// if the observing [RenderSliver] is visible in its closest ancestor [RenderViewportBase]
-  bool get sliverVisible;
+  bool get renderVisible;
+
+  /// the origin of [RenderObject] that is being observed
+  RevealedOffset? get origin;
 
   /// indicates whether a [RenderSliver] is being observed by this observer.
   /// If false, it would throw errors to report illegal usage,
   /// only when [isActive] is true, the observer could work normally.
   bool get isActive;
 
-  /// whether this observer should start observing the [RenderObserverProxy].
-  /// typically, it should be true
-  bool _observing = true;
-  bool get isObserving => _observing;
-
-  /// sometimes, [ObserverProxy] may not be descendants of [RenderSliver] temporarily,
-  /// e.g., [ReorderableListView] is ordering.
-  /// using [pause] to stop observing temporarily.
-  /// using [resume] to continue observing.
-  void pause() {
-    _observing = false;
-  }
-
-  void resume() {
-    _observing = true;
-  }
+  /// used by [estimateScrollOffset] to calculate the trailing offset for an item.
+  /// See:
+  ///   * [ItemScrollExtent.getTrailingOffset]
+  Axis get axis;
 
   /// sometimes, the target index to which users want to scroll may not be same as the current render index,
   /// by using [targetToRenderIndex], users could define how to map the target index to a render index.
@@ -87,7 +75,41 @@ abstract class ObserverScrollInterface {
     PredicatorStrategy strategy = PredicatorStrategy.tolerance,
     bool shouldNormalized = true,
     bool shouldConvert = false,
-  });
+  }) {
+    assert(isActive && firstLayoutFinished);
+
+    index = shouldConvert ? targetToRenderIndex?.call(index) ?? index : index;
+
+    final validIndex = shouldNormalized ? normalizeIndex(index) : index;
+
+    final itemScrollModel = getItemScrollExtent(validIndex);
+    final itemSize = getItemSize(validIndex);
+
+    if (!renderVisible || itemScrollModel == null || itemSize == null) {
+      return false;
+    }
+
+    final leadingOffset = itemScrollModel.getLeadingOffset(origin!.offset);
+
+    final double trailingOffset = itemScrollModel.getTrailingOffset(
+      leadingOffset,
+      axis: axis,
+      size: itemSize,
+    );
+
+    final trailingEdge = getTrailingEdgeFromScroll(scrollExtent);
+
+    return OnstagePredicator.predict(
+      leadingOffset,
+      trailingOffset,
+      leadingEdge: scrollExtent.current,
+      trailingEdge: trailingEdge,
+      maxScrollExtent: scrollExtent.max,
+    );
+  }
+
+  /// get the trailing edge for the viewport
+  double getTrailingEdgeFromScroll(ScrollExtent scrollExtent);
 
   /// estimate the scroll offset for [target].
   /// if [target] has been observed, it should return the observed scroll offset.
@@ -114,7 +136,7 @@ abstract class ObserverScrollInterface {
   Size? getItemSize(int index);
 
   /// releasing some resources hold by this observer, e.g., [RenderSliver]
-  void clear();
+  void clear() {}
 
   /// ensure [firstLayoutFinished] is true to guarantee legal usage for [estimateScrollOffset] before continuing
   void checkFirstLayoutFinished() {
@@ -125,6 +147,11 @@ abstract class ObserverScrollInterface {
       );
     }
   }
+
+  void debugCheckOnstageItems({
+    required ScrollExtent scrollExtent,
+    PredicatorStrategy strategy = PredicatorStrategy.tolerance,
+  }) {}
 }
 
 void _scheduleAsPostFrameCallback(void Function(Duration) callback) {
@@ -134,11 +161,11 @@ void _scheduleAsPostFrameCallback(void Function(Duration) callback) {
 mixin ObserverScrollImpl on ObserverScrollInterface {
   @override
   void clear() {
+    super.clear();
     if (_revealing != null && !_revealing!.isCompleted) {
       _revealing?.complete(false);
     }
     _revealing = null;
-    _observing = false;
     targetToRenderIndex = null;
     renderToTargetIndex = null;
   }
@@ -178,6 +205,8 @@ mixin ObserverScrollImpl on ObserverScrollInterface {
     bool closeToEdge = true,
   }) async {
     index = targetToRenderIndex?.call(index) ?? index;
+
+    print("animate to: $index");
 
     if (_revealing != null && !_revealing!.isCompleted) {
       return _revealing!.future.then(
@@ -221,8 +250,8 @@ mixin ObserverScrollImpl on ObserverScrollInterface {
   }) {
     _checkActive();
 
-    if (!sliverVisible || !firstLayoutFinished) {
-      if (!sliverVisible) {
+    if (!renderVisible || !firstLayoutFinished) {
+      if (!renderVisible) {
         showInViewport(position);
       }
 
@@ -273,11 +302,11 @@ mixin ObserverScrollImpl on ObserverScrollInterface {
     required Curve curve,
     bool closeToEdge = true,
   }) async {
-    assert(_revealing != null);
+    if (_revealing == null) return;
 
     _checkActive();
 
-    if (!sliverVisible) {
+    if (!renderVisible) {
       showInViewport(position, duration: duration, curve: curve);
       Future.delayed(duration, () {
         _animateToUnrevealedIndex(

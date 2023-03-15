@@ -1,7 +1,7 @@
 import 'package:flutter/widgets.dart';
 
-import '../observer/scroll_observer.dart';
-import 'observer_proxy.dart';
+import 'sliver_observer_proxy.dart';
+import '../observer/sliver_observer.dart';
 
 class PositionedChildListDelegate extends SliverPositionedProxyDelegate {
   final List<Widget> children;
@@ -102,7 +102,7 @@ abstract class SliverPositionedProxyDelegate extends SliverChildDelegate {
   final bool addProxy;
   final int semanticIndexOffset;
   final SemanticIndexCallback semanticIndexCallback;
-  final ScrollObserver? observer;
+  final SliverScrollObserver? observer;
 
   SliverPositionedProxyDelegate({
     this.observer,
@@ -170,8 +170,8 @@ abstract class SliverPositionedProxyDelegate extends SliverChildDelegate {
     }
 
     if (addProxy && observer != null) {
-      child = ObserverProxy(
-        observer: observer,
+      child = SliverObserverProxy(
+        observer: observer!,
         child: child,
       );
     }

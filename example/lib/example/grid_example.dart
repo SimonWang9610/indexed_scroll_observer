@@ -15,8 +15,8 @@ class PositionedGridExample extends StatefulWidget {
 class _PositionedGridExampleState extends State<PositionedGridExample> {
   int _itemCount = 30;
 
-  final PositionedScrollController _controller =
-      PositionedScrollController.singleObserver();
+  final ScrollController _controller = ScrollController();
+  late final grid = MultiChildSliverObserver(itemCount: _itemCount);
 
   final String observerKey = "grid";
   @override
@@ -53,15 +53,16 @@ class _PositionedGridExampleState extends State<PositionedGridExample> {
           ),
           SliverJumpWidget(
             label: "without animation",
-            onJump: (index) => _controller.jumpToIndex(
-              index,
-            ),
+            onJump: (index) {
+              grid.jumpToIndex(index, position: _controller.position);
+            },
           ),
           SliverJumpWidget(
             label: "animation",
             onJump: (index) {
-              _controller.animateToIndex(
+              grid.animateToIndex(
                 index,
+                position: _controller.position,
                 duration: const Duration(milliseconds: 200),
                 curve: Curves.bounceInOut,
               );
@@ -79,8 +80,7 @@ class _PositionedGridExampleState extends State<PositionedGridExample> {
                   title: Text("Positioned Grid Example $index"),
                 ),
                 childCount: _itemCount,
-                observer:
-                    _controller.createOrObtainObserver(itemCount: _itemCount),
+                observer: grid,
               ),
               gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: 3,
@@ -91,7 +91,8 @@ class _PositionedGridExampleState extends State<PositionedGridExample> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          _controller.debugCheckOnstageItems();
+          final scrollExtent = ScrollExtent.fromPosition(_controller.position);
+          grid.debugCheckOnstageItems(scrollExtent: scrollExtent);
         },
         child: const Icon(Icons.visibility_off_rounded),
       ),
@@ -99,7 +100,7 @@ class _PositionedGridExampleState extends State<PositionedGridExample> {
   }
 
   void _goStart() {
-    _controller.showInViewport();
+    grid.showInViewport(_controller.position);
   }
 
   void _addItem() {

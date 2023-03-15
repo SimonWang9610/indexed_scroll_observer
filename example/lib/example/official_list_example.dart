@@ -15,8 +15,10 @@ class _OfficialListExampleState extends State<OfficialListExample> {
   int _itemCount = 30;
 
   final ScrollController _controller = ScrollController();
-  late final ScrollObserver _observer =
-      ScrollObserver.multiChild(itemCount: _itemCount);
+  // late final ScrollObserver _observer =
+  //     ScrollObserver.multiChild(itemCount: _itemCount);
+  late final SliverScrollObserver _observer =
+      MultiChildSliverObserver(itemCount: _itemCount);
 
   @override
   void dispose() {
@@ -74,7 +76,7 @@ class _OfficialListExampleState extends State<OfficialListExample> {
           Expanded(
             child: ListView.builder(
               controller: _controller,
-              itemBuilder: (context, index) => ObserverProxy(
+              itemBuilder: (context, index) => SliverObserverProxy(
                 observer: _observer,
                 child: ListTile(
                   key: ValueKey<int>(index),
@@ -131,7 +133,8 @@ class _OfficialSeparatedListExampleState
   int _itemCount = 30;
 
   final ScrollController _controller = ScrollController();
-  late final ScrollObserver _observer = ScrollObserver.multiChild(
+
+  late final SliverScrollObserver _observer = MultiChildSliverObserver(
     itemCount: _computeActualChildCount(_itemCount),
   )
     ..targetToRenderIndex = _toRenderIndex

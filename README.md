@@ -25,7 +25,7 @@ and the Flutter guide for
     <img src="https://github.com/SimonWang9610/indexed_scroll_observer/blob/main/snapshots/grid.gif?raw=true" width="320">
     <img src="https://github.com/SimonWang9610/indexed_scroll_observer/blob/main/snapshots/reorderable.gif?raw=true" width="320">
     <img src="https://github.com/SimonWang9610/indexed_scroll_observer/blob/main/snapshots/separated.gif?raw=true" width="320">
-    <img src="https://github.com/SimonWang9610/indexed_scroll_observer/blob/main/snapshots/lis.gif?raw=true">
+    <!-- <img src="https://github.com/SimonWang9610/indexed_scroll_observer/blob/main/snapshots/list.gif?raw=true" width="320"> -->
 </div>
 
 ## Getting started
