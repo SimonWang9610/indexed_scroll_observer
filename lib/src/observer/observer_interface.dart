@@ -389,7 +389,7 @@ mixin ObserverScrollImpl on ObserverScrollInterface {
       scrollExtent: ScrollExtent.fromPosition(position),
     );
     // print(
-    //     "index : $index, estimated: $targetOffset, current: ${position.pixels} diff: ${targetOffset - position.pixels}");
+    //     "[MOVE]: index : $index, estimated: $targetOffset, current: ${position.pixels} diff: ${targetOffset - position.pixels}");
 
     return position.moveTo(
       targetOffset,
@@ -414,7 +414,7 @@ mixin ObserverScrollImpl on ObserverScrollInterface {
     final pixelDiff = estimated - position.pixels;
 
     // print(
-    //     "index : $index, estimated: $estimated, current: ${position.pixels} diff: $pixelDiff");
+    //     "[ADJUST] index : $index, estimated: $estimated, current: ${position.pixels} diff: $pixelDiff");
 
     final canScroll =
         position.maxScrollExtent > position.pixels || position.pixels > 0;
