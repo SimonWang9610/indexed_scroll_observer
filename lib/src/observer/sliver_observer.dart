@@ -133,6 +133,9 @@ class MultiChildSliverObserver extends SliverScrollObserver
       int? first;
       int? last;
 
+      int maxCrossCount = 0;
+      double maxCrossAxisOffset = 0;
+
       while (child != null) {
         final currentParentData =
             child.parentData! as SliverMultiBoxAdaptorParentData;
@@ -149,12 +152,25 @@ class MultiChildSliverObserver extends SliverScrollObserver
         first = lessFirst(first, item.index);
         last = greaterLast(last, item.index);
 
+        if (item.crossAxisOffset != null) {
+          if (item.crossAxisOffset! > maxCrossAxisOffset) {
+            maxCrossCount++;
+            maxCrossAxisOffset = item.crossAxisOffset!;
+          }
+        }
+
         child = currentParentData.nextSibling;
         count++;
       }
 
       updateRange(first, last);
       updateEstimation(totalExtent, count);
+
+      updateMaxCrossCount(
+        maxCrossCount: maxCrossCount,
+        maxCrossOffset: maxCrossAxisOffset,
+        crossAxisExtent: renderObject!.constraints.crossAxisExtent,
+      );
     }
   }
 }

@@ -21,6 +21,8 @@ mixin MultiChildEstimation<T extends RenderObject>
   /// If the item has a fixed extent, it should be equal to the fixed item extent after serval jump/animate.
   double _averageExtentForEachIndex = 0;
 
+  int _estimatedCrossCount = 1;
+
   int? _first;
   int? _last;
 
@@ -62,19 +64,29 @@ mixin MultiChildEstimation<T extends RenderObject>
     if (_items.containsKey(target)) {
       estimated += getItemScrollExtent(target)!.mainAxisOffset;
     } else {
-      if (target < _first!) {
-        estimated += getItemScrollExtent(_first!)!.mainAxisOffset +
-            (target - _first!) * _averageExtentForEachIndex;
-      } else if (target > _last!) {
-        estimated += getItemScrollExtent(_last!)!.mainAxisOffset +
-            (target - _last!) * _averageExtentForEachIndex;
-      } else {
-        assert(
-          false,
-          "This line should never reach. Since $target is in [$_first, $_last], "
-          "its [itemScrollModel] should be observed during $runtimeType.didFinishLayout",
-        );
-      }
+      final shouldScrollUp = target < _first!;
+
+      final indexGap = shouldScrollUp ? target - _first! : target - _last!;
+      final anchor = shouldScrollUp
+          ? getItemScrollExtent(_first!)!.mainAxisOffset
+          : getItemScrollExtent(_last!)!.mainAxisOffset;
+
+      estimated += anchor +
+          (indexGap / _estimatedCrossCount) * _averageExtentForEachIndex;
+
+      // if (target < _first!) {
+      //   estimated += getItemScrollExtent(_first!)!.mainAxisOffset +
+      //       (target - _first!) * _averageExtentForEachIndex;
+      // } else if (target > _last!) {
+      //   estimated += getItemScrollExtent(_last!)!.mainAxisOffset +
+      //       (target - _last!) * _averageExtentForEachIndex;
+      // } else {
+      //   assert(
+      //     false,
+      //     "This line should never reach. Since $target is in [$_first, $_last], "
+      //     "its [itemScrollModel] should be observed during $runtimeType.didFinishLayout",
+      //   );
+      // }
     }
 
     final leadingEdge = max(origin!.offset, scrollExtent.min);
@@ -92,6 +104,21 @@ mixin MultiChildEstimation<T extends RenderObject>
       _averageExtentForEachIndex = average;
     } else {
       _averageExtentForEachIndex = (average + _averageExtentForEachIndex) / 2;
+    }
+  }
+
+  /// [maxCrossOffset] is cross axis offset of the left/bottom most item
+  /// [maxCrossCount] increments when [maxCrossOffset] increments
+  void updateMaxCrossCount({
+    required int maxCrossCount,
+    required double maxCrossOffset,
+    required double crossAxisExtent,
+  }) {
+    if (maxCrossOffset > 0 && maxCrossCount > 0) {
+      final crossExtentForEach =
+          maxCrossCount > 1 ? maxCrossOffset / maxCrossCount : maxCrossOffset;
+
+      _estimatedCrossCount = (crossAxisExtent / crossExtentForEach).round();
     }
   }
 

@@ -13,7 +13,7 @@ class PositionedGridExample extends StatefulWidget {
 }
 
 class _PositionedGridExampleState extends State<PositionedGridExample> {
-  int _itemCount = 30;
+  int _itemCount = 100;
 
   final ScrollController _controller = ScrollController();
   late final grid = ScrollObserver.sliverMulti(itemCount: _itemCount);
@@ -64,7 +64,7 @@ class _PositionedGridExampleState extends State<PositionedGridExample> {
                 index,
                 position: _controller.position,
                 duration: const Duration(milliseconds: 200),
-                curve: Curves.bounceInOut,
+                curve: Curves.linear,
               );
             },
           ),
