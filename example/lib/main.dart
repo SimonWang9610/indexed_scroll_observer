@@ -45,6 +45,14 @@ class _MyHomePageState extends State<MyHomePage> {
             OutlinedButton(
               onPressed: () {
                 context.push(
+                  const Exmaple(),
+                );
+              },
+              child: const Text("Test Example"),
+            ),
+            OutlinedButton(
+              onPressed: () {
+                context.push(
                   const OfficialListExample(),
                 );
               },
@@ -94,6 +102,59 @@ class _MyHomePageState extends State<MyHomePage> {
         ),
       ),
     );
+  }
+}
+
+class Exmaple extends StatefulWidget {
+  const Exmaple({super.key});
+
+  @override
+  State<Exmaple> createState() => _ExmapleState();
+}
+
+class _ExmapleState extends State<Exmaple> {
+  final List<Widget> items = List.generate(30, (index) => index)
+      .map(
+        (e) => ListTile(
+          title: Text("Item $e"),
+        ),
+      )
+      .toList();
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text("test Example"),
+      ),
+      body: Column(
+        children: [
+          OutlinedButton(
+            onPressed: _add,
+            child: const Text("insert"),
+          ),
+          Expanded(
+            child: ListView.builder(
+              reverse: true,
+              itemCount: items.length,
+              itemBuilder: (_, index) => items[index],
+            ),
+          )
+        ],
+      ),
+    );
+  }
+
+  void _add() {
+    // items.insert(
+    //     0,
+    //     ListTile(
+    //       title: Text("item ${items.length}"),
+    //     ));
+
+    items.add(ListTile(
+      title: Text("item ${items.length}"),
+    ));
+    setState(() {});
   }
 }
 

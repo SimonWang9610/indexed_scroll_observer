@@ -12,12 +12,27 @@ class OfficialListExample extends StatefulWidget {
 }
 
 class _OfficialListExampleState extends State<OfficialListExample> {
-  int _itemCount = 1000;
+  int _itemCount = 100;
 
-  final ScrollController _controller = ScrollController();
+  // final ScrollController _controller = ScrollController();
+  final RetainableScrollController _controller = RetainableScrollController();
 
   late final SliverScrollObserver _observer =
       MultiChildSliverObserver(itemCount: _itemCount);
+
+  late final List<Widget> _items = List.generate(_itemCount, (index) => index)
+      .map(
+        (index) => ObserverProxy(
+          observer: _observer,
+          child: ListTile(
+            leading: const CircleAvatar(
+              child: Text("L"),
+            ),
+            title: Text("Positioned List Example $index"),
+          ),
+        ),
+      )
+      .toList();
 
   @override
   void dispose() {
@@ -89,16 +104,8 @@ class _OfficialListExampleState extends State<OfficialListExample> {
           Expanded(
             child: ListView.builder(
               controller: _controller,
-              itemBuilder: (context, index) => ObserverProxy(
-                observer: _observer,
-                child: ListTile(
-                  key: ValueKey<int>(index),
-                  leading: const CircleAvatar(
-                    child: Text("L"),
-                  ),
-                  title: Text("Positioned List Example $index"),
-                ),
-              ),
+              reverse: true,
+              itemBuilder: (context, index) => _items[index],
               itemCount: _itemCount,
             ),
           )
@@ -122,14 +129,60 @@ class _OfficialListExampleState extends State<OfficialListExample> {
   void _addItem() {
     _itemCount++;
     _observer.itemCount = _itemCount;
+    _items.insert(
+      0,
+      ObserverProxy(
+        observer: _observer,
+        child: ListTile(
+          leading: const CircleAvatar(
+            child: Text("L"),
+          ),
+          title: Text("Positioned List Example $_itemCount"),
+        ),
+      ),
+    );
+    _checkScrollOffset();
+    // _observer.standBy(_controller.position);
+    _controller.retainOffset();
+
     setState(() {});
+
+    final double old = _controller.position.pixels;
+    final double oldMax = _controller.position.maxScrollExtent;
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _checkScrollOffset();
+
+      // if (old > 0.0) {
+      //   final diff = _controller.position.maxScrollExtent - oldMax;
+      //   _controller.jumpTo(old + diff);
+      //   final current = _controller.position.pixels;
+      //   final max = _controller.position.maxScrollExtent;
+      //   print("[post frame]: $diff, current: $current, max: $max");
+      // }
+    });
   }
 
   void _deleteItem() {
     _itemCount = max(--_itemCount, 0);
     _observer.itemCount = _itemCount;
 
+    _items.removeLast();
+
+    final double old = _controller.position.pixels;
+    final double oldMax = _controller.position.maxScrollExtent;
+
+    _checkScrollOffset();
     setState(() {});
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _checkScrollOffset();
+    });
+  }
+
+  void _checkScrollOffset() {
+    final max = _controller.position.maxScrollExtent;
+    final current = _controller.position.pixels;
+    print("current: $current, max: $max");
   }
 }
 

@@ -113,6 +113,7 @@ abstract class ObserverScrollInterface {
   /// get the trailing edge for the viewport
   double getTrailingEdgeFromScroll(ScrollExtent scrollExtent);
 
+  /// get the [index]'s main axis extent based on [axis]
   double getMainAxisExtent(int index) {
     final size = getItemSize(index);
 
