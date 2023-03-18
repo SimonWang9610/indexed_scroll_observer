@@ -1,7 +1,7 @@
 name: positioned_scroll_observer
 description: An elegant scroll observer that support most scroll views could jump/animateToIndex without breaking current widgets.
 
-version: 2.0.1
+version: 2.1.0
 homepage: https://github.com/SimonWang9610/indexed_scroll_observer
 repository: https://github.com/SimonWang9610/indexed_scroll_observer
 issue_tracker: https://github.com/SimonWang9610/indexed_scroll_observer/issues

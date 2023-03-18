@@ -1,3 +1,9 @@
+## 2.1.0
+
+- [new feature]: support `RetainableScrollController` to keep scroll offset when inserting a new item into the top of the `ListView`.
+
+- See details: [pull request](https://github.com/SimonWang9610/indexed_scroll_observer/pull/6)
+
 ## 2.0.1
 
 - fix: [Issue #4](https://github.com/SimonWang9610/indexed_scroll_observer/issues/4)
