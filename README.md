@@ -16,8 +16,8 @@ and the Flutter guide for
 
 ## Features
 
-1. using `jumpToIndex` and `animateToIndex` to scroll to the specific `index`
-2. No breaking for your current sliver widgets, e.g., `ListView`/`GridView`, `SliverList`/`SliverGrid`/`SliverAppBar`
+1. Using `jumpToIndex` and `animateToIndex` to scroll to the specific `index`
+2. No breaking for your current sliver widgets, e.g., `ListView`/`GridView`, `SliverList`/`SliverGrid`/`SliverAppBar`, just wrapping your item widgets using `ObserverProxy`. Supported:
 
 - [x] ListView
 - [x] GridView
@@ -25,6 +25,10 @@ and the Flutter guide for
 - [x] SingleChildScrollView
 - [x] ListWheelScrollView
 - [ ] NestedScrollView (waiting testing)
+
+3. Using `RetainableScrollController` to retain the old offset to avoid scrolling when adding new items into the top of `ListView`. See [retain old scroll offset](#using-retainablescrollcontroller-for-retaining-the-old-scroll-offset).
+
+4. Check if the specific `index` is visible on the screen. See [check visibility](#checking-index-is-visible-on-the-screen).
 
 ## Getting started
 
@@ -90,7 +94,7 @@ and the Flutter guide for
      );
    ```
 
-### Usage for slivers, e.g., `SliverList`, `SliverGrid` and so on.
+### Usage for slivers widgets.
 
 <div style="float: left">
     <img src="https://github.com/SimonWang9610/indexed_scroll_observer/blob/main/snapshots/custom.gif?raw=true" width="320">
@@ -139,6 +143,50 @@ and the Flutter guide for
 
 1. observing a box with single child, using `ScrollObserver.boxSingle` to create. (rare cases and need more testing)
 2. observing a box with multi children, using `ScrollObserver.boxMulti` to create.
+
+### Checking `index` is visible on the screen
+
+By invoking `YourObserver.isRevealed` to check if the `index`'s `RenderObject` is visible on the screen.
+
+- `index`: your specific index
+- `scrollExtent`: You could get the `ScrollExtent` by using `ScrollExtent.fromPosition(ScrollController.position)`
+- `strategy` indicates how to determine if the `index` is visible.
+  1. `PredicatorStrategy.tolerance` would tolerate the visual ratio is not less `50%`
+  2. `PredicatorStrategy.inside` would ensure the entire `index` is visible
+
+More details, see [API reference](https://pub.dev/documentation/positioned_scroll_observer/latest/positioned_scroll_observer/SliverScrollObserver/isRevealed.html).
+
+### Using `RetainableScrollController` for retaining the old scroll offset
+
+<div> 
+    <img src="https://github.com/SimonWang9610/indexed_scroll_observer/blob/main/snapshots/retain.gif?raw=true" width="320">
+</div>
+
+1. create a `RetainableScrollController`
+
+```dart
+  final RetainableScrollController _controller = RetainableScrollController();
+```
+
+2. using it when you do not want the list to scroll if inserting a new item at `0` index
+
+```dart
+    _items.insert(
+      0,
+      ObserverProxy(
+        observer: _observer,
+        child: ListTile(
+          leading: const CircleAvatar(
+            child: Text("L"),
+          ),
+          title: Text("Positioned List Example $_itemCount"),
+        ),
+      ),
+    );
+    _controller.retainOffset();
+
+    setState(() {});
+```
 
 ### Pay attention
 
