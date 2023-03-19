@@ -13,6 +13,10 @@ import 'package:flutter/widgets.dart';
 /// See also:
 ///   * [RetainableScrollPosition], which would correct existing items' scroll offsets and not scroll them up/down,
 ///   when the new item is inserting at the first index of [ListView.children]
+@Deprecated(
+  "Using [PositionRetainedScrollPhysics], instead of using the extended [ScrollController] and [ScrollPositioned],"
+  "to avoid breaking your existing code implementations.",
+)
 class RetainableScrollController extends ScrollController {
   RetainableScrollController({
     super.initialScrollOffset,
@@ -90,5 +94,49 @@ class RetainableScrollPosition extends ScrollPositionWithSingleContext {
     }
 
     return applied && !isPixelsCorrected;
+  }
+}
+
+/// Instead of using a custom [ScrollController] and [ScrollPosition],
+/// by using [PositionRetainedScrollPhysics], we could avoid breaking out the existing project,
+/// and just pass [PositionRetainedScrollPhysics] as [ScrollView.physics].
+/// Then, it would not scroll up/down when new items are inserted into the top of a list.
+///
+/// If [shouldRetain] is false, it would do nothing.
+class PositionRetainedScrollPhysics extends ScrollPhysics {
+  final bool shouldRetain;
+  const PositionRetainedScrollPhysics({super.parent, this.shouldRetain = true});
+
+  @override
+  PositionRetainedScrollPhysics applyTo(ScrollPhysics? ancestor) {
+    return PositionRetainedScrollPhysics(
+      parent: buildParent(ancestor),
+      shouldRetain: shouldRetain,
+    );
+  }
+
+  @override
+  double adjustPositionForNewDimensions({
+    required ScrollMetrics oldPosition,
+    required ScrollMetrics newPosition,
+    required bool isScrolling,
+    required double velocity,
+  }) {
+    final position = super.adjustPositionForNewDimensions(
+      oldPosition: oldPosition,
+      newPosition: newPosition,
+      isScrolling: isScrolling,
+      velocity: velocity,
+    );
+
+    final diff = newPosition.maxScrollExtent - oldPosition.maxScrollExtent;
+
+    if (oldPosition.pixels > oldPosition.minScrollExtent &&
+        diff > 0 &&
+        shouldRetain) {
+      return position + diff;
+    } else {
+      return position;
+    }
   }
 }

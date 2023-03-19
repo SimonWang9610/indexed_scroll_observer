@@ -26,7 +26,7 @@ and the Flutter guide for
 - [x] ListWheelScrollView
 - [ ] NestedScrollView (waiting testing)
 
-3. Using `RetainableScrollController` to retain the old offset to avoid scrolling when adding new items into the top of `ListView`. See [retain old scroll offset](#using-retainablescrollcontroller-for-retaining-the-old-scroll-offset).
+3. Using `PositionRetainedScrollPhysics` to retain the old offset to avoid scrolling when adding new items into the top of `ListView`. See [retain old scroll offset](#using-positionretainedscrollphysics-for-retaining-the-old-scroll-offset).
 
 4. Check if the specific `index` is visible on the screen. See [check visibility](#checking-index-is-visible-on-the-screen).
 
@@ -156,36 +156,20 @@ By invoking `YourObserver.isRevealed` to check if the `index`'s `RenderObject` i
 
 More details, see [API reference](https://pub.dev/documentation/positioned_scroll_observer/latest/positioned_scroll_observer/SliverScrollObserver/isRevealed.html).
 
-### Using `RetainableScrollController` for retaining the old scroll offset
+### Using `PositionRetainedScrollPhysics` for retaining the old scroll offset
 
 <div> 
     <img src="https://github.com/SimonWang9610/indexed_scroll_observer/blob/main/snapshots/retain.gif?raw=true" width="320">
 </div>
 
-1. create a `RetainableScrollController`
-
 ```dart
-  final RetainableScrollController _controller = RetainableScrollController();
-```
-
-2. using it when you do not want the list to scroll if inserting a new item at `0` index
-
-```dart
-    _items.insert(
-      0,
-      ObserverProxy(
-        observer: _observer,
-        child: ListTile(
-          leading: const CircleAvatar(
-            child: Text("L"),
-          ),
-          title: Text("Positioned List Example $_itemCount"),
-        ),
-      ),
-    );
-    _controller.retainOffset();
-
-    setState(() {});
+ListView.builder(
+  controller: _controller,
+  reverse: true,
+  physics: const PositionRetainedScrollPhysics(),
+  itemBuilder: (context, index) => _items[index],
+  itemCount: _itemCount,
+);
 ```
 
 ### Pay attention
