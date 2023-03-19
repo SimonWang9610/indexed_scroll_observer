@@ -93,7 +93,7 @@ class SingleChildSliverObserver extends SliverScrollObserver
 class MultiChildSliverObserver extends SliverScrollObserver
     with MultiChildEstimation {
   MultiChildSliverObserver({int? itemCount}) {
-    itemCount = itemCount;
+    this.itemCount = itemCount;
   }
 
   @override

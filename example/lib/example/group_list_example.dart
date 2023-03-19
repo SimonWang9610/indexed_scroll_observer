@@ -1,3 +1,4 @@
+import 'package:example/example/sliver_jump.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:positioned_scroll_observer/positioned_scroll_observer.dart';
@@ -66,6 +67,10 @@ class _GroupListState extends State<GroupList> {
       ),
       body: Column(
         children: [
+          SliverJumpWidget(
+            label: "without animation",
+            onJump: _jumpTo,
+          ),
           GroupListTabBar(
             tabCount: _groups.length,
             tabBuilder: (_, index) => _buildTab(index),
@@ -126,6 +131,35 @@ class _GroupListState extends State<GroupList> {
         title: Text("${_groups[groupIndex]}: $itemIndex"),
       ),
     );
+  }
+
+  void _jumpTo(int index) {
+    int visited = 0;
+
+    int? whichGroup;
+    int? itemIndex;
+
+    for (int i = 0; i < _groups.length; i++) {
+      final currentMax = visited + _groupCounts[i];
+
+      if (index >= visited && index < currentMax) {
+        whichGroup = i;
+        itemIndex = index - visited;
+        break;
+      } else {
+        visited = currentMax;
+      }
+    }
+
+    if (whichGroup == null || itemIndex == null) {
+      whichGroup = _groups.length - 1;
+      itemIndex = _groupCounts[whichGroup];
+    }
+
+    _observers[whichGroup]?.itemObserver.jumpToIndex(
+          itemIndex,
+          position: _controller.position,
+        );
   }
 
   void _listenIndexChange() {
