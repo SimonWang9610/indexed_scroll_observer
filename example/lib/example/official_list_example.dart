@@ -102,6 +102,8 @@ class _OfficialListExampleState extends State<OfficialListExample> {
           _observer.debugCheckOnstageItems(
             scrollExtent: ScrollExtent.fromPosition(_controller.position),
           );
+          print(_observer.visibleRatioInViewport(
+              ScrollExtent.fromPosition(_controller.position)));
         },
         child: const Icon(Icons.visibility_off_rounded),
       ),

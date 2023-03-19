@@ -73,20 +73,6 @@ mixin MultiChildEstimation<T extends RenderObject>
 
       estimated += anchor +
           (indexGap / _estimatedCrossCount) * _averageExtentForEachIndex;
-
-      // if (target < _first!) {
-      //   estimated += getItemScrollExtent(_first!)!.mainAxisOffset +
-      //       (target - _first!) * _averageExtentForEachIndex;
-      // } else if (target > _last!) {
-      //   estimated += getItemScrollExtent(_last!)!.mainAxisOffset +
-      //       (target - _last!) * _averageExtentForEachIndex;
-      // } else {
-      //   assert(
-      //     false,
-      //     "This line should never reach. Since $target is in [$_first, $_last], "
-      //     "its [itemScrollModel] should be observed during $runtimeType.didFinishLayout",
-      //   );
-      // }
     }
 
     final leadingEdge = max(origin!.offset, scrollExtent.min);
@@ -140,6 +126,53 @@ mixin MultiChildEstimation<T extends RenderObject>
       final smaller = min(index, itemCount! - 1);
       final normalized = max(0, smaller);
       return normalized;
+    }
+  }
+
+  @override
+  double visibleRatioInViewport(ScrollExtent scrollExtent) {
+    if (!renderVisible || !firstLayoutFinished) {
+      return 0.0;
+    } else {
+      final leadingEdge = scrollExtent.current;
+      final trailingEdge = leadingEdge + mainAxisExtent;
+      final totalVisible = trailingEdge - leadingEdge;
+
+      int start = _first!;
+
+      double visibleStart = 0.0;
+      double visibleEnd = 0.0;
+
+      bool hasVisibleStart = false;
+
+      while (start <= _last!) {
+        final itemScrollExtent = getItemScrollExtent(start)!;
+        final leadingOffset = itemScrollExtent.getLeadingOffset(origin!.offset);
+        final itemSize = getItemSize(start)!;
+
+        final trailingOffset = itemScrollExtent.getTrailingOffset(
+          leadingOffset,
+          axis: axis,
+          size: itemSize,
+        );
+
+        if (!hasVisibleStart) {
+          visibleStart = max(leadingEdge, leadingOffset);
+          hasVisibleStart = true;
+        }
+
+        if (leadingOffset < trailingEdge) {
+          visibleEnd = min(trailingEdge, trailingOffset);
+        } else {
+          break;
+        }
+
+        start++;
+      }
+
+      final visibleExtent = visibleEnd - visibleStart;
+
+      return clampDouble(visibleExtent / totalVisible, 0, 1);
     }
   }
 
@@ -209,6 +242,29 @@ mixin SingleChildEstimation<T extends RenderObject>
     required ScrollExtent scrollExtent,
   }) {
     return scrollExtent.current;
+  }
+
+  @override
+  double visibleRatioInViewport(ScrollExtent scrollExtent) {
+    if (!renderVisible || !firstLayoutFinished) {
+      return 0.0;
+    } else {
+      final leadingEdge = scrollExtent.current;
+      final trailingEdge = leadingEdge + mainAxisExtent;
+      final totalVisible = trailingEdge - leadingEdge;
+
+      double ratio;
+      switch (axis) {
+        case Axis.vertical:
+          ratio = _size!.height / totalVisible;
+          break;
+        case Axis.horizontal:
+          ratio = _size!.width / totalVisible;
+          break;
+      }
+
+      return clampDouble(ratio, 0, 1.0);
+    }
   }
 
   @override

@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
 
@@ -30,6 +31,8 @@ abstract class LayoutObserver<T extends RenderObject> {
 
   /// if the first layout is completed.
   /// it should be true as long as [doFinishLayout] is invoked at least once.
+  /// once [firstLayoutFinished] is true, indicating that all operations on this
+  /// observer could be completed safely.
   bool get firstLayoutFinished => isActive && !shouldUpdateOrigin;
 
   /// should update the origin for [renderObject]
@@ -37,7 +40,8 @@ abstract class LayoutObserver<T extends RenderObject> {
   bool get shouldUpdateOrigin => _shouldUpdateOrigin;
 
   /// once [onLayout] is invoked, it would be true to indicate
-  /// that it require invoking [doFinishLayout] at least once
+  /// that it require invoking [doFinishLayout] at least once.
+  /// Users typically do not set [shouldDoFinishLayout] directly.
   @protected
   bool shouldDoFinishLayout = false;
 
@@ -87,7 +91,7 @@ abstract class LayoutObserver<T extends RenderObject> {
   }
 
   /// if [renderObject] is [RenderAbstractViewport], the [origin] should be zero,
-  /// since all items' scroll offsets are relative to the closest [RenderAbstractViewport;
+  /// since all items' scroll offsets are relative to the closest [RenderAbstractViewport];
   /// otherwise, we should find the closest viewport to calculate its [origin]
   void _updateRenderOrigin() {
     if (_shouldUpdateOrigin && isObserving) {
@@ -96,9 +100,7 @@ abstract class LayoutObserver<T extends RenderObject> {
 
         origin = RevealedOffset(offset: 0, rect: paintBounds);
       } else {
-        final viewport = RenderAbstractViewport.of(_renderObject);
-
-        origin = viewport.getOffsetToReveal(_renderObject!, 0.0);
+        origin = alignVisibleOffset(0.0);
       }
 
       _shouldUpdateOrigin = false;
@@ -114,20 +116,38 @@ abstract class LayoutObserver<T extends RenderObject> {
   /// make the [renderObject] is visible ont the screen.
   /// we guarantee that [RenderAbstractViewport.of] would find an [RenderAbstractViewport] ancestor
   /// for [renderObject], since the scrollable content is always wrapped in a kind of [RenderAbstractViewport].
+  /// [alignment] indicates how you want to align the [renderObject] on the screen when [renderObject] is visible.
+  /// if [alignment] is 0.0, [renderObject] would try closing to [ScrollPosition.pixels] as much as possible;
+  /// if [alignment] is 1.0, [renderObject] would try closing to [ScrollPosition.maxScrollExtent] as much as possible;
   void showInViewport(
     ViewportOffset offset, {
+    double alignment = 0.0,
     Duration duration = Duration.zero,
     Curve curve = Curves.ease,
   }) {
     if (!isActive) return;
 
+    final targetOffset = alignVisibleOffset(clampDouble(alignment, 0, 1.0));
+
+    if (targetOffset != null) {
+      offset.moveTo(
+        targetOffset.offset,
+        duration: duration,
+        curve: curve,
+        clamp: true,
+      );
+    }
+  }
+
+  /// Calculate the position of [renderObject] using the given alignment
+  /// See also:
+  ///   * [RenderAbstractViewport.getOffsetToReveal], which calculates a [RenderObject]'s position in the viewport.
+  RevealedOffset? alignVisibleOffset(double alignment) {
+    if (!isActive) return null;
+
     final viewport = RenderAbstractViewport.of(_renderObject);
 
-    viewport.showOnScreen(
-      descendant: _renderObject,
-      duration: duration,
-      curve: curve,
-    );
+    return viewport.getOffsetToReveal(_renderObject!, alignment);
   }
 
   /// whether this observer should start observing the [RenderObserverProxy].
@@ -146,6 +166,9 @@ abstract class LayoutObserver<T extends RenderObject> {
   void resume() {
     _observing = true;
   }
+
+  /// the available painting extent along the main axis for a viewport
+  double get mainAxisExtent;
 
   /// check if [parentData] is desired for an observer.
   /// it should be implemented by the subclasses of [LayoutObserver]

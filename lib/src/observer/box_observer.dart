@@ -60,21 +60,25 @@ abstract class BoxScrollObserver<T extends RenderObject>
     super.doFinishLayout();
   }
 
+  @override
+  double get mainAxisExtent => _mainAxisExtent;
+
+  /// for [BoxScrollObserver], its closest [RenderAbstractViewport] is typically
+  /// has no [SliverConstraints], and therefore, we use its [paintBounds] to indicate
+  /// how many pixels it could use along the main axis
   double _mainAxisExtent = 0;
 
   void _findViewportMainAxisExtent() {
-    if (shouldUpdateOrigin && isObserving) {
-      final viewport = RenderAbstractViewport.of(renderObject);
+    final viewport = RenderAbstractViewport.of(renderObject);
 
-      final paintBound = viewport.paintBounds;
-      switch (axis) {
-        case Axis.vertical:
-          _mainAxisExtent = paintBound.height;
-          break;
-        case Axis.horizontal:
-          _mainAxisExtent = paintBound.width;
-          break;
-      }
+    final paintBound = viewport.paintBounds;
+    switch (axis) {
+      case Axis.vertical:
+        _mainAxisExtent = paintBound.height;
+        break;
+      case Axis.horizontal:
+        _mainAxisExtent = paintBound.width;
+        break;
     }
   }
 

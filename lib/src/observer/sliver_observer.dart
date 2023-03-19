@@ -26,6 +26,12 @@ abstract class SliverScrollObserver extends LayoutObserver<RenderSliver>
     return renderObject!.constraints.axis;
   }
 
+  @override
+  double get mainAxisExtent {
+    assert(isActive);
+    return renderObject!.constraints.viewportMainAxisExtent;
+  }
+
   /// if the viewport is overlapped by the previous [RenderSliver],
   /// the trailing edge should subtract the overlapped area
   @override
@@ -87,7 +93,7 @@ class SingleChildSliverObserver extends SliverScrollObserver
 class MultiChildSliverObserver extends SliverScrollObserver
     with MultiChildEstimation {
   MultiChildSliverObserver({int? itemCount}) {
-    itemCount = itemCount;
+    this.itemCount = itemCount;
   }
 
   @override
