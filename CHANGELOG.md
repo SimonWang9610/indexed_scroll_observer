@@ -1,3 +1,11 @@
+## 2.2.0
+
+1. support check the visible ratio of the observed RenderObject in a viewport
+2. support aligning the observed RenderObject when showing it in the viewport.
+3. add the GroupList example to show the usage of visibleRatioInViewport.
+
+- see details: [pull request](https://github.com/SimonWang9610/indexed_scroll_observer/pull/8)
+
 ## 2.1.1
 
 - deprecate `RetainableScrollController`, and introduce `PositionRetainedScrollPhysics` to achieve same goals.

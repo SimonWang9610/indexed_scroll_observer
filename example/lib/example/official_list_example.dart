@@ -53,16 +53,31 @@ class _OfficialListExampleState extends State<OfficialListExample> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               OutlinedButton(
-                onPressed: _addItem,
-                child: const Text("Add Item"),
+                onPressed: () {
+                  _observer.showInViewport(
+                    _controller.position,
+                    alignment: 0.0,
+                  );
+                },
+                child: const Text("Go to start"),
               ),
               OutlinedButton(
-                onPressed: _deleteItem,
-                child: const Text("Delete Item"),
+                onPressed: () {
+                  _observer.showInViewport(
+                    _controller.position,
+                    alignment: 0.5,
+                  );
+                },
+                child: const Text("Go to middle"),
               ),
               OutlinedButton(
-                onPressed: _goStart,
-                child: const Text("Scroll to edge"),
+                onPressed: () {
+                  _observer.showInViewport(
+                    _controller.position,
+                    alignment: 1.0,
+                  );
+                },
+                child: const Text("Go to end"),
               ),
             ],
           ),

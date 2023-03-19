@@ -17,7 +17,16 @@ and the Flutter guide for
 ## Features
 
 1. Using `jumpToIndex` and `animateToIndex` to scroll to the specific `index`
-2. No breaking for your current sliver widgets, e.g., `ListView`/`GridView`, `SliverList`/`SliverGrid`/`SliverAppBar`, just wrapping your item widgets using `ObserverProxy`. Supported:
+
+2. Jumping/animating to the position by specifying a ratio in a scroll view. See [how to align the render object](#jumpanimate-to-a-ratio-position-in-a-viewport). That would be very useful if you want to quickly jump to the top, middle or end of a list/grid.
+
+3. Using `PositionRetainedScrollPhysics` to retain the old offset to avoid scrolling when adding new items into the top of `ListView`. See [retain old scroll offset](#using-positionretainedscrollphysics-for-retaining-the-old-scroll-offset).
+
+4. Check if the specific `index` is visible on the screen. See [check visibility](#checking-index-is-visible-on-the-screen).
+
+5. Check the visible ratio of the observed `RenderObject` in a viewport. See [how to use it in a GroupList](https://github.com/SimonWang9610/indexed_scroll_observer/blob/main/example/lib/example/group_list_example.dart)
+
+6. No breaking for your current sliver widgets, e.g., `ListView`/`GridView`, `SliverList`/`SliverGrid`/`SliverAppBar`, just wrapping your item widgets using `ObserverProxy`. Supported:
 
 - [x] ListView
 - [x] GridView
@@ -25,10 +34,6 @@ and the Flutter guide for
 - [x] SingleChildScrollView
 - [x] ListWheelScrollView
 - [ ] NestedScrollView (waiting testing)
-
-3. Using `PositionRetainedScrollPhysics` to retain the old offset to avoid scrolling when adding new items into the top of `ListView`. See [retain old scroll offset](#using-positionretainedscrollphysics-for-retaining-the-old-scroll-offset).
-
-4. Check if the specific `index` is visible on the screen. See [check visibility](#checking-index-is-visible-on-the-screen).
 
 ## Getting started
 
@@ -101,7 +106,7 @@ and the Flutter guide for
     <img src="https://github.com/SimonWang9610/indexed_scroll_observer/blob/main/snapshots/grid.gif?raw=true" width="320">
     <img src="https://github.com/SimonWang9610/indexed_scroll_observer/blob/main/snapshots/reorderable.gif?raw=true" width="320">
     <img src="https://github.com/SimonWang9610/indexed_scroll_observer/blob/main/snapshots/separated.gif?raw=true" width="320">
-
+    <img src="https://github.com/SimonWang9610/indexed_scroll_observer/blob/main/snapshots/group_list_demo.gif?raw=true" width="320">
 </div>
 
 1. create a `SliverScrollObserver` for observing the sliver with multi children.
@@ -172,6 +177,27 @@ ListView.builder(
 );
 ```
 
+### Jump/animate to a ratio position in a viewport
+
+<div> 
+    <img src="https://github.com/SimonWang9610/indexed_scroll_observer/blob/main/snapshots/ratio_jump.gif?raw=true" width="320">
+</div>
+
+```dart
+_observer.showInViewport(
+  _controller.position,
+  alignment: 0.5,
+);
+```
+
+By setting different `alignment`, you could jump/animate to the position according to the ratio: `alignment`.
+
+1. for `alignment = 0.0`, it would align the render object' leading to the leading of the viewport's main axis extent.
+2. for `alignment = 0.5`, it would align the render object's center to the center of the viewport;s main axis extent.
+3. for `alignment = 1.0`, it would align the render object's trailing to the trailing of the viewport's main axis extent.
+
+> you could also specify `alignment` as the number between `[0, 1]`
+
 ### Pay attention
 
 - **The item widget/builder must be wrapped using `ObserverProxy`**
@@ -187,6 +213,7 @@ ListView.builder(
 - [ReorderableListView example](https://github.com/SimonWang9610/indexed_scroll_observer/blob/main/example/lib/example/reorderable_list_example.dart)
 - [ListWheelScrollView example](https://github.com/SimonWang9610/indexed_scroll_observer/blob/main/example/lib/example/list_wheel_example.dart)
 - [SingleChildScrollView example](https://github.com/SimonWang9610/indexed_scroll_observer/blob/main/example/lib/example/single_child_scroll_view_example.dart)
+- [GroupList example](https://github.com/SimonWang9610/indexed_scroll_observer/blob/main/example/lib/example/group_list_example.dart)
 
 ## FAQ
 
