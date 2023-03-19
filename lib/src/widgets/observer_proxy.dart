@@ -2,7 +2,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
 import 'package:positioned_scroll_observer/positioned_scroll_observer.dart';
-import 'package:positioned_scroll_observer/src/observer/layout_observer.dart';
 
 class ObserverProxy extends SingleChildRenderObjectWidget {
   final LayoutObserver observer;
