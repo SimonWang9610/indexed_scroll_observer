@@ -1,3 +1,8 @@
+## 2.1.1
+
+- deprecate `RetainableScrollController`, and introduce `PositionRetainedScrollPhysics` to achieve same goals.
+- See details: [pull request](https://github.com/SimonWang9610/indexed_scroll_observer/pull/7)
+
 ## 2.1.0
 
 - [new feature]: support `RetainableScrollController` to keep scroll offset when inserting a new item into the top of the `ListView`.
