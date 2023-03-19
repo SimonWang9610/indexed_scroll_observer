@@ -57,6 +57,7 @@ class _CustomViewExampleState extends State<CustomViewExample> {
                 position: _controller.position,
                 duration: const Duration(milliseconds: 200),
                 curve: Curves.bounceIn,
+                alignment: 0.1,
               );
             },
           ),
@@ -158,6 +159,12 @@ class _CustomViewExampleState extends State<CustomViewExample> {
           appbar.debugCheckOnstageItems(scrollExtent: scrollExtent);
           grid.debugCheckOnstageItems(scrollExtent: scrollExtent);
           list.debugCheckOnstageItems(scrollExtent: scrollExtent);
+
+          print(
+              "[keepalive]: ${keepAlive.visibleRatioInViewport(scrollExtent)}");
+          print("[appbar]: ${appbar.visibleRatioInViewport(scrollExtent)}");
+          print("[grid]: ${grid.visibleRatioInViewport(scrollExtent)}");
+          print("[list]: ${list.visibleRatioInViewport(scrollExtent)}");
         },
         child: const Icon(Icons.visibility_off_rounded),
       ),

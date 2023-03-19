@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/rendering.dart';
 
 import 'package:flutter/widgets.dart';
@@ -21,6 +22,8 @@ const Duration _kDefaultAdjustDuration = Duration(milliseconds: 60);
 abstract class ObserverScrollInterface {
   /// indicates that if some children have been laid out completely and are being painted on the screen,
   bool get firstLayoutFinished;
+
+  double get mainAxisExtent;
 
   /// if the observing [RenderSliver] is visible in its closest ancestor [RenderViewportBase]
   bool get renderVisible;
@@ -56,12 +59,61 @@ abstract class ObserverScrollInterface {
   /// by setting [renderToTargetIndex], users could define how to convert the render index to the target index.
   IndexConverter? renderToTargetIndex;
 
-  /// make the observed [RenderSliver] visible in its closest ancestor [RenderViewportBase]
+  /// make its observed [RenderObject] visible in its closest ancestor [RenderViewportBase]
+  /// we guarantee that [RenderAbstractViewport.of] would find an [RenderAbstractViewport] ancestor,
+  /// since the scrollable content is always wrapped in a kind of [RenderAbstractViewport].
+  /// [alignment] indicates how you want to align the [RenderObject] on the screen when [RenderObject] is visible.
+  /// if [alignment] is 0.0, [RenderObject] would try closing to [ScrollPosition.pixels] as much as possible;
+  /// if [alignment] is 1.0, [RenderObject] would try closing to [ScrollPosition.maxScrollExtent] as much as possible;
+  /// if [alignment] is 0.5, [RenderObject] would try closing to the center between [ScrollPosition.pixels] and [ScrollPosition.maxScrollExtent]
+  /// as much as possible.
   void showInViewport(
     ViewportOffset offset, {
+    double alignment = 0.0,
     Duration duration = Duration.zero,
     Curve curve = Curves.ease,
   });
+
+  /// calculate the visible part of the [RenderObject] relative to the main axis extent of its viewport.
+  /// for example, the observed [RenderObject] has 200 pixels painted on the screen, while the viewport has
+  /// 500 pixels painting extent. The ratio would be 200/500 = 0.4.
+  /// The result would never over 1.0, since the visible part can not be greater than the viewport's painting extent.
+  double visibleRatioInViewport(ScrollExtent scrollExtent);
+
+  // todo: need testing
+  double? relativePositionInViewport(
+    int index, {
+    required ScrollExtent scrollExtent,
+    double alignment = 0.0,
+    bool shouldNormalized = true,
+    bool shouldConvert = false,
+  }) {
+    index = shouldConvert ? targetToRenderIndex?.call(index) ?? index : index;
+    final validIndex = shouldNormalized ? normalizeIndex(index) : index;
+
+    final itemScrollExtent = getItemScrollExtent(validIndex);
+    final itemSize = getItemSize(validIndex);
+
+    if (!renderVisible ||
+        !firstLayoutFinished ||
+        itemScrollExtent == null ||
+        itemSize == null) {
+      return null;
+    }
+
+    final leadingOffset = itemScrollExtent.getLeadingOffset(origin!.offset);
+    final shift = itemScrollExtent.getMainAxisExtent(axis, itemSize) *
+        clampDouble(alignment, 0, 1.0);
+
+    final distanceToLeading = leadingOffset + shift - scrollExtent.current;
+
+    /// index is not painted on the screen
+    if (distanceToLeading < 0 || distanceToLeading > mainAxisExtent) {
+      return null;
+    } else {
+      return distanceToLeading / mainAxisExtent;
+    }
+  }
 
   /// if [index] is revealed in its closest ancestor [RenderSliver].
   /// typically, [index] must have been observed before checking [isRevealed].
@@ -84,16 +136,16 @@ abstract class ObserverScrollInterface {
 
     final validIndex = shouldNormalized ? normalizeIndex(index) : index;
 
-    final itemScrollModel = getItemScrollExtent(validIndex);
+    final itemScrollExtent = getItemScrollExtent(validIndex);
     final itemSize = getItemSize(validIndex);
 
-    if (!renderVisible || itemScrollModel == null || itemSize == null) {
+    if (!renderVisible || itemScrollExtent == null || itemSize == null) {
       return false;
     }
 
-    final leadingOffset = itemScrollModel.getLeadingOffset(origin!.offset);
+    final leadingOffset = itemScrollExtent.getLeadingOffset(origin!.offset);
 
-    final double trailingOffset = itemScrollModel.getTrailingOffset(
+    final double trailingOffset = itemScrollExtent.getTrailingOffset(
       leadingOffset,
       axis: axis,
       size: itemSize,
@@ -184,12 +236,15 @@ mixin ObserverScrollImpl on ObserverScrollInterface {
   }
 
   /// jump to [index] based on the given [position].
-  /// this [ScrollObserver] and [position] should be associated/attached to the same [ScrollController].
+  /// this observer and [position] should be associated/attached to the same [ScrollController].
   /// if [closeToEdge] is true, we would try scrolling [index] to the edge of [ScrollView.reverse] if not over scrolling.
+  /// [alignment] only takes effects when the observed [RenderObject] is not visible on the screen,
+  /// if the [RenderObject] has been visible on the screen, [alignment] is ignored.
   void jumpToIndex(
     int index, {
     required ScrollPosition position,
     bool closeToEdge = true,
+    double alignment = 0.0,
   }) {
     index = targetToRenderIndex?.call(index) ?? index;
 
@@ -208,14 +263,17 @@ mixin ObserverScrollImpl on ObserverScrollInterface {
   /// by doing so, we could avoid multi revealing tasks ongoing.
   /// the returned result indicates if all chained tasks are completed successfully.
   ///
-  /// this [ScrollObserver] and [position] should be associated/attached to the same [ScrollController].
+  /// this observer and [position] should be associated/attached to the same [ScrollController].
   /// if [closeToEdge] is true, we would try scrolling [index] to the edge of [ScrollView.reverse] if not over scrolling
+  /// [alignment] only takes effects when the observed [RenderObject] is not visible on the screen,
+  /// if the [RenderObject] has been visible on the screen, [alignment] is ignored.
   Future<bool> animateToIndex(
     int index, {
     required ScrollPosition position,
     required Duration duration,
     required Curve curve,
     bool closeToEdge = true,
+    double alignment = 0.0,
   }) async {
     index = targetToRenderIndex?.call(index) ?? index;
 
@@ -229,6 +287,7 @@ mixin ObserverScrollImpl on ObserverScrollInterface {
               duration: duration,
               curve: curve,
               closeToEdge: closeToEdge,
+              alignment: alignment,
             );
           }
           return canSchedule;
@@ -244,26 +303,28 @@ mixin ObserverScrollImpl on ObserverScrollInterface {
         duration: duration,
         curve: curve,
         closeToEdge: closeToEdge,
+        alignment: alignment,
       );
       return _revealing!.future;
     }
   }
 
-  /// [position] is the current attached [ScrollPosition]
-  /// if [sliverVisible] or [firstLayoutFinished] is false, it turns out we could not estimate scroll offset now
-  /// so we schedule it at the next frame so as to some required information is ready for estimation
-  /// then, we would estimate the scroll offset for [index] to jump to [index] gradually
-  /// if [closeToEdge] is true, we would try scrolling [index] to the edge of [ScrollView.reverse] if not over scrolling
+  /// [position] is the current attached [ScrollPosition].
+  /// if [renderVisible] or [firstLayoutFinished] is false, it turns out we could not estimate scroll offset now,
+  /// so we schedule it at the next frame so as to some required information is ready for estimation.
+  /// then, we would estimate the scroll offset for [index] to jump to [index] gradually.
+  /// if [closeToEdge] is true, we would try scrolling [index] to the edge of [ScrollView.reverse] if not over scrolling.
   void _jumpToUnrevealedIndex(
     int index, {
     required ScrollPosition position,
     bool closeToEdge = true,
+    double alignment = 0.0,
   }) {
     _checkActive();
 
     if (!renderVisible || !firstLayoutFinished) {
       if (!renderVisible) {
-        showInViewport(position);
+        showInViewport(position, alignment: alignment);
       }
 
       _scheduleAsPostFrameCallback(
@@ -272,6 +333,7 @@ mixin ObserverScrollImpl on ObserverScrollInterface {
             index,
             position: position,
             closeToEdge: closeToEdge,
+            alignment: alignment,
           );
         },
       );
@@ -292,6 +354,7 @@ mixin ObserverScrollImpl on ObserverScrollInterface {
               index,
               position: position,
               closeToEdge: closeToEdge,
+              alignment: alignment,
             );
           },
         );
@@ -312,13 +375,19 @@ mixin ObserverScrollImpl on ObserverScrollInterface {
     required Duration duration,
     required Curve curve,
     bool closeToEdge = true,
+    double alignment = 0.0,
   }) async {
     if (_revealing == null) return;
 
     _checkActive();
 
     if (!renderVisible) {
-      showInViewport(position, duration: duration, curve: curve);
+      showInViewport(
+        position,
+        duration: duration,
+        curve: curve,
+        alignment: alignment,
+      );
       Future.delayed(duration, () {
         _animateToUnrevealedIndex(
           index,
@@ -326,6 +395,7 @@ mixin ObserverScrollImpl on ObserverScrollInterface {
           duration: duration,
           curve: curve,
           closeToEdge: closeToEdge,
+          alignment: alignment,
         );
       });
     } else if (!firstLayoutFinished) {
@@ -336,6 +406,7 @@ mixin ObserverScrollImpl on ObserverScrollInterface {
           duration: duration,
           curve: curve,
           closeToEdge: closeToEdge,
+          alignment: alignment,
         );
       });
     } else {
@@ -362,6 +433,7 @@ mixin ObserverScrollImpl on ObserverScrollInterface {
             duration: duration,
             curve: curve,
             closeToEdge: closeToEdge,
+            alignment: alignment,
           );
         });
       } else if (indexRevealed && closeToEdge) {

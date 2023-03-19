@@ -107,11 +107,15 @@ class ItemScrollExtent {
   /// get the trailing scroll offset based on the given [Axis] and its leading scroll offset [leading].
   double getTrailingOffset(double leading,
       {required Axis axis, required Size size}) {
+    return leading + getMainAxisExtent(axis, size);
+  }
+
+  double getMainAxisExtent(Axis axis, Size size) {
     switch (axis) {
       case Axis.vertical:
-        return size.height + leading;
+        return size.height;
       case Axis.horizontal:
-        return size.width + leading;
+        return size.width;
     }
   }
 

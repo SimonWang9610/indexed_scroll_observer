@@ -102,6 +102,7 @@ class _SingleChildScrollExampleState extends State<SingleChildScrollExample> {
           _observer.debugCheckOnstageItems(
             scrollExtent: ScrollExtent.fromPosition(_controller.position),
           );
+          // _observer.showInViewport(_controller.position, alignment: 0.5);
         },
         child: const Icon(Icons.visibility),
       ),
