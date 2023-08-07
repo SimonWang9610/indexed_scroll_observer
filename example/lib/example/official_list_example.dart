@@ -114,7 +114,7 @@ class _OfficialListExampleState extends State<OfficialListExample> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          _observer.debugCheckOnstageItems(
+          _observer.getVisibleItems(
             scrollExtent: ScrollExtent.fromPosition(_controller.position),
           );
           print(_observer.visibleRatioInViewport(
@@ -261,7 +261,7 @@ class _OfficialSeparatedListExampleState
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          _observer.debugCheckOnstageItems(
+          _observer.getVisibleItems(
             scrollExtent: ScrollExtent.fromPosition(_controller.position),
           );
         },

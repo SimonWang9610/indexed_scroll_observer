@@ -1,7 +1,8 @@
 ## 2.2.1
 
 1. rename `OnstageStrategy` to `VisibilityStrategy`
-2. README update
+2. introduce `getVisibleItems` to indicate which items are visible in the viewport
+3. README update
 
 ## 2.2.0
 

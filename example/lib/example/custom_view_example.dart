@@ -162,11 +162,11 @@ class _CustomViewExampleState extends State<CustomViewExample> {
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           final scrollExtent = ScrollExtent.fromPosition(_controller.position);
-          keepAlive.debugCheckOnstageItems(scrollExtent: scrollExtent);
-          appbar.debugCheckOnstageItems(scrollExtent: scrollExtent);
-          grid.debugCheckOnstageItems(
+          keepAlive.getVisibleItems(scrollExtent: scrollExtent);
+          appbar.getVisibleItems(scrollExtent: scrollExtent);
+          grid.getVisibleItems(
               scrollExtent: scrollExtent, strategy: VisibilityStrategy.inside);
-          list.debugCheckOnstageItems(scrollExtent: scrollExtent);
+          list.getVisibleItems(scrollExtent: scrollExtent);
         },
         child: const Icon(Icons.visibility_off_rounded),
       ),

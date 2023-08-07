@@ -230,10 +230,10 @@ abstract class ObserverScrollInterface {
     }
   }
 
-  void debugCheckOnstageItems({
+  List<int> getVisibleItems({
     required ScrollExtent scrollExtent,
     VisibilityStrategy strategy = VisibilityStrategy.tolerance,
-  }) {}
+  });
 }
 
 mixin ObserverScrollImpl on ObserverScrollInterface {

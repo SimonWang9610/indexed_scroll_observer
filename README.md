@@ -24,9 +24,11 @@ and the Flutter guide for
 
 4. Check if the specific `index` is visible on the screen. See [check visibility](#checking-index-is-visible-on-the-screen).
 
-5. Check the visible ratio of the observed `RenderObject` in a viewport. See [how to use it in a GroupList](https://github.com/SimonWang9610/indexed_scroll_observer/blob/main/example/lib/example/group_list_example.dart)
+5. Check which items are visible in the viewport. See [get visible items](#get-visible-items)
 
-6. No breaking for your current sliver widgets, e.g., `ListView`/`GridView`, `SliverList`/`SliverGrid`/`SliverAppBar`, just wrapping your item widgets using `ObserverProxy`. Supported:
+6. Check the visible ratio of the observed `RenderObject` in a viewport. See [how to use it in a GroupList](https://github.com/SimonWang9610/indexed_scroll_observer/blob/main/example/lib/example/group_list_example.dart)
+
+7. No breaking for your current sliver widgets, e.g., `ListView`/`GridView`, `SliverList`/`SliverGrid`/`SliverAppBar`, just wrapping your item widgets using `ObserverProxy`. Supported:
 
 - [x] ListView
 - [x] GridView
@@ -153,6 +155,12 @@ and the Flutter guide for
 
 <div> 
     <img src="https://github.com/SimonWang9610/indexed_scroll_observer/blob/main/snapshots/is_revealed.png?raw=true" width="320">
+</div>
+
+### get visible items
+
+<div> 
+    <img src="https://github.com/SimonWang9610/indexed_scroll_observer/blob/main/snapshots/get_visible_items.png?raw=true" width="320">
 </div>
 
 More details, see [API reference](https://pub.dev/documentation/positioned_scroll_observer/latest/positioned_scroll_observer/SliverScrollObserver/isRevealed.html).

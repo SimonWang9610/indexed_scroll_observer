@@ -177,19 +177,20 @@ mixin MultiChildEstimation<T extends RenderObject>
   }
 
   @override
-  void debugCheckOnstageItems({
+  List<int> getVisibleItems({
     required ScrollExtent scrollExtent,
     VisibilityStrategy strategy = VisibilityStrategy.tolerance,
   }) {
-    List<int> onstageItems = [];
+    List<int> visibleItems = [];
 
     for (final key in items.keys) {
       if (isRevealed(key, scrollExtent: scrollExtent, strategy: strategy)) {
-        onstageItems.add(renderToTargetIndex?.call(key) ?? key);
+        visibleItems.add(renderToTargetIndex?.call(key) ?? key);
       }
     }
 
-    debugPrint("$runtimeType: $onstageItems");
+    debugPrint("$runtimeType: $visibleItems");
+    return visibleItems;
   }
 
   @override
@@ -264,11 +265,12 @@ mixin SingleChildEstimation<T extends RenderObject>
   }
 
   @override
-  void debugCheckOnstageItems({
+  List<int> getVisibleItems({
     required ScrollExtent scrollExtent,
     VisibilityStrategy strategy = VisibilityStrategy.tolerance,
   }) {
     debugPrint("$runtimeType: $renderVisible");
+    return renderVisible ? [0] : [];
   }
 
   @override

@@ -92,7 +92,7 @@ class _PositionedGridExampleState extends State<PositionedGridExample> {
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           final scrollExtent = ScrollExtent.fromPosition(_controller.position);
-          grid.debugCheckOnstageItems(scrollExtent: scrollExtent);
+          grid.getVisibleItems(scrollExtent: scrollExtent);
         },
         child: const Icon(Icons.visibility_off_rounded),
       ),

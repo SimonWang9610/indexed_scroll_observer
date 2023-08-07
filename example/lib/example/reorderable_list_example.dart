@@ -107,7 +107,7 @@ class _OfficialReorderableListExampleState
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          _observer.debugCheckOnstageItems(
+          _observer.getVisibleItems(
             scrollExtent: ScrollExtent.fromPosition(_controller.position),
           );
         },
