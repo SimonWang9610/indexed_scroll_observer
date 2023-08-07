@@ -179,7 +179,7 @@ class MultiChildBoxObserver extends BoxScrollObserver<MultiChildRenderBox>
   }
 
   @override
-  void debugCheckOnstageItems({
+  List<int> getVisibleItems({
     required ScrollExtent scrollExtent,
     VisibilityStrategy strategy = VisibilityStrategy.tolerance,
   }) {
@@ -192,6 +192,8 @@ class MultiChildBoxObserver extends BoxScrollObserver<MultiChildRenderBox>
     }
 
     debugPrint("$runtimeType: $onstageItems");
+
+    return onstageItems;
   }
 }
 

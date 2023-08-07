@@ -7,7 +7,7 @@ repository: https://github.com/SimonWang9610/indexed_scroll_observer
 issue_tracker: https://github.com/SimonWang9610/indexed_scroll_observer/issues
 
 environment:
-  sdk: ">=2.17.0 <3.0.0"
+  sdk: ">=2.17.0 <4.0.0"
   flutter: ">=1.17.0"
 
 dependencies:
