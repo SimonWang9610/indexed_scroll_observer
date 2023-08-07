@@ -114,12 +114,19 @@ class _CustomViewExampleState extends State<CustomViewExample> {
                   sliver: SliverGrid(
                     delegate: PositionedChildBuilderDelegate(
                       childCount: _itemCount,
-                      (context, index) => ListTile(
-                        key: ValueKey<int>(index),
-                        leading: const CircleAvatar(
-                          child: Text("Grid"),
+                      (context, index) => DecoratedBox(
+                        decoration: BoxDecoration(
+                          color:
+                              Colors.primaries[index % Colors.primaries.length],
+                          borderRadius: BorderRadius.circular(10),
                         ),
-                        title: Text("Grid $index"),
+                        child: ListTile(
+                          key: ValueKey<int>(index),
+                          leading: const CircleAvatar(
+                            child: Text("Grid"),
+                          ),
+                          title: Text("Grid $index"),
+                        ),
                       ),
                       addRepaintBoundaries: false,
                       addSemanticIndexes: true,
@@ -157,14 +164,9 @@ class _CustomViewExampleState extends State<CustomViewExample> {
           final scrollExtent = ScrollExtent.fromPosition(_controller.position);
           keepAlive.debugCheckOnstageItems(scrollExtent: scrollExtent);
           appbar.debugCheckOnstageItems(scrollExtent: scrollExtent);
-          grid.debugCheckOnstageItems(scrollExtent: scrollExtent);
+          grid.debugCheckOnstageItems(
+              scrollExtent: scrollExtent, strategy: VisibilityStrategy.inside);
           list.debugCheckOnstageItems(scrollExtent: scrollExtent);
-
-          print(
-              "[keepalive]: ${keepAlive.visibleRatioInViewport(scrollExtent)}");
-          print("[appbar]: ${appbar.visibleRatioInViewport(scrollExtent)}");
-          print("[grid]: ${grid.visibleRatioInViewport(scrollExtent)}");
-          print("[list]: ${list.visibleRatioInViewport(scrollExtent)}");
         },
         child: const Icon(Icons.visibility_off_rounded),
       ),

@@ -3,7 +3,7 @@ import 'package:positioned_scroll_observer/src/observer/layout_observer.dart';
 import 'package:positioned_scroll_observer/src/observer/observer_interface.dart';
 
 import 'scroll_extent.dart';
-import 'onstage_strategy.dart';
+import 'visibility_strategy.dart';
 import 'item_estimation.dart';
 import 'util.dart';
 
@@ -59,7 +59,8 @@ class SingleChildSliverObserver extends SliverScrollObserver
   bool isRevealed(
     int index, {
     required ScrollExtent scrollExtent,
-    PredicatorStrategy strategy = PredicatorStrategy.tolerance,
+    VisibilityStrategy strategy = VisibilityStrategy.tolerance,
+    double tolerance = 0.0,
     bool shouldNormalized = true,
     bool shouldConvert = false,
   }) =>

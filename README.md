@@ -151,13 +151,9 @@ and the Flutter guide for
 
 ### Checking `index` is visible on the screen
 
-By invoking `YourObserver.isRevealed` to check if the `index`'s `RenderObject` is visible on the screen.
-
-- `index`: your specific index
-- `scrollExtent`: You could get the `ScrollExtent` by using `ScrollExtent.fromPosition(ScrollController.position)`
-- `strategy` indicates how to determine if the `index` is visible.
-  1. `PredicatorStrategy.tolerance` would tolerate the visual ratio is not less `50%`
-  2. `PredicatorStrategy.inside` would ensure the entire `index` is visible
+<div> 
+    <img src="https://github.com/SimonWang9610/indexed_scroll_observer/blob/main/snapshots/is_revealed.png?raw=true" width="320">
+</div>
 
 More details, see [API reference](https://pub.dev/documentation/positioned_scroll_observer/latest/positioned_scroll_observer/SliverScrollObserver/isRevealed.html).
 

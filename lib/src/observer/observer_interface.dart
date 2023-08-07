@@ -6,7 +6,7 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
 
 import 'scroll_extent.dart';
-import 'onstage_strategy.dart';
+import 'visibility_strategy.dart';
 
 typedef IndexConverter = int Function(int);
 
@@ -78,6 +78,7 @@ abstract class ObserverScrollInterface {
   /// for example, the observed [RenderObject] has 200 pixels painted on the screen, while the viewport has
   /// 500 pixels painting extent. The ratio would be 200/500 = 0.4.
   /// The result would never over 1.0, since the visible part can not be greater than the viewport's painting extent.
+  /// typically, it is used for multi slivers in a custom scroll view to see if how many ratio of which the sliver is visible in the viewport
   double visibleRatioInViewport(ScrollExtent scrollExtent);
 
   // todo: need testing
@@ -117,16 +118,23 @@ abstract class ObserverScrollInterface {
 
   /// if [index] is revealed in its closest ancestor [RenderSliver].
   /// typically, [index] must have been observed before checking [isRevealed].
+  ///
   /// [strategy] is used to determine the threshold of which [index] should be regarded as revealed/visible.
+  ///
   /// [shouldNormalized] indicates if we need to [normalizeIndex] into a valid range.
-  /// [ScrollExtent] is the current scroll extent built from [ScrollPosition] to.
+  ///
+  /// [ScrollExtent] is the current scroll extent built from [ScrollPosition] to
   /// indicate the current min/max scroll extent and pixels.
+  ///
   /// if [shouldConvert] is true, it would try to use [targetToRenderIndex] to convert [index] to its render index.
   /// [shouldConvert] is always false when using internally for [jumpToIndex] and [animateToIndex].
+  ///
+  /// Note that [isRevealed] should only be used when [firstLayoutFinished] is completed and [isActive]
   bool isRevealed(
     int index, {
     required ScrollExtent scrollExtent,
-    PredicatorStrategy strategy = PredicatorStrategy.tolerance,
+    VisibilityStrategy strategy = VisibilityStrategy.tolerance,
+    double tolerance = 0.1,
     bool shouldNormalized = true,
     bool shouldConvert = false,
   }) {
@@ -153,12 +161,13 @@ abstract class ObserverScrollInterface {
 
     final trailingEdge = getTrailingEdgeFromScroll(scrollExtent);
 
-    return OnstagePredicator.predict(
+    return strategy.handle(
       leadingOffset,
       trailingOffset,
       leadingEdge: scrollExtent.current,
       trailingEdge: trailingEdge,
       maxScrollExtent: scrollExtent.max,
+      tolerance: tolerance,
     );
   }
 
@@ -183,6 +192,10 @@ abstract class ObserverScrollInterface {
   /// estimate the scroll offset for [target].
   /// if [target] has been observed, it should return the observed scroll offset.
   /// if not, it would use some other information to estimate the scroll offset for [target].
+  ///
+  /// For [SingleChildEstimation], it would return the current [ScrollPosition.pixels] since there is only one child.
+  /// For [MultiChildEstimation], it would return the observed scroll offset for [target] if [target] has been observed.
+  ///
   /// See:
   ///   * [SingleChildEstimation], which implements how to do estimation for [RenderObject] with single child
   ///   * [MultiChildEstimation], which implements how to do estimation for [RenderObject] with multi children
@@ -219,7 +232,7 @@ abstract class ObserverScrollInterface {
 
   void debugCheckOnstageItems({
     required ScrollExtent scrollExtent,
-    PredicatorStrategy strategy = PredicatorStrategy.tolerance,
+    VisibilityStrategy strategy = VisibilityStrategy.tolerance,
   }) {}
 }
 
@@ -343,7 +356,7 @@ mixin ObserverScrollImpl on ObserverScrollInterface {
       final indexRevealed = isRevealed(
         index,
         scrollExtent: ScrollExtent.fromPosition(position),
-        strategy: PredicatorStrategy.inside,
+        strategy: VisibilityStrategy.inside,
       );
 
       if (!indexRevealed) {
@@ -415,7 +428,7 @@ mixin ObserverScrollImpl on ObserverScrollInterface {
       final indexRevealed = isRevealed(
         index,
         scrollExtent: ScrollExtent.fromPosition(position),
-        strategy: PredicatorStrategy.inside,
+        strategy: VisibilityStrategy.inside,
       );
 
       if (!indexRevealed) {
