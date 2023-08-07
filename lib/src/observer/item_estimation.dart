@@ -6,7 +6,7 @@ import 'package:positioned_scroll_observer/src/observer/layout_observer.dart';
 import 'package:positioned_scroll_observer/src/observer/observer_interface.dart';
 import 'package:positioned_scroll_observer/src/observer/scroll_extent.dart';
 
-import 'onstage_strategy.dart';
+import 'visibility_strategy.dart';
 
 /// Used for observers whose [hasMultiChild] is true.
 /// Such observers need to observe multi children for a [RenderObject],
@@ -177,19 +177,20 @@ mixin MultiChildEstimation<T extends RenderObject>
   }
 
   @override
-  void debugCheckOnstageItems({
+  List<int> getVisibleItems({
     required ScrollExtent scrollExtent,
-    PredicatorStrategy strategy = PredicatorStrategy.tolerance,
+    VisibilityStrategy strategy = VisibilityStrategy.tolerance,
   }) {
-    List<int> onstageItems = [];
+    List<int> visibleItems = [];
 
     for (final key in items.keys) {
       if (isRevealed(key, scrollExtent: scrollExtent, strategy: strategy)) {
-        onstageItems.add(renderToTargetIndex?.call(key) ?? key);
+        visibleItems.add(renderToTargetIndex?.call(key) ?? key);
       }
     }
 
-    debugPrint("$runtimeType: $onstageItems");
+    debugPrint("$runtimeType: $visibleItems");
+    return visibleItems;
   }
 
   @override
@@ -249,17 +250,13 @@ mixin SingleChildEstimation<T extends RenderObject>
     if (!renderVisible || !firstLayoutFinished) {
       return 0.0;
     } else {
-      final leadingEdge = scrollExtent.current;
-      final trailingEdge = leadingEdge + mainAxisExtent;
-      final totalVisible = trailingEdge - leadingEdge;
-
       double ratio;
       switch (axis) {
         case Axis.vertical:
-          ratio = _size!.height / totalVisible;
+          ratio = _size!.height / mainAxisExtent;
           break;
         case Axis.horizontal:
-          ratio = _size!.width / totalVisible;
+          ratio = _size!.width / mainAxisExtent;
           break;
       }
 
@@ -268,11 +265,12 @@ mixin SingleChildEstimation<T extends RenderObject>
   }
 
   @override
-  void debugCheckOnstageItems({
+  List<int> getVisibleItems({
     required ScrollExtent scrollExtent,
-    PredicatorStrategy strategy = PredicatorStrategy.tolerance,
+    VisibilityStrategy strategy = VisibilityStrategy.tolerance,
   }) {
     debugPrint("$runtimeType: $renderVisible");
+    return renderVisible ? [0] : [];
   }
 
   @override

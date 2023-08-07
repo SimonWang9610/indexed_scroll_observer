@@ -1,3 +1,9 @@
+## 2.2.1
+
+1. rename `OnstageStrategy` to `VisibilityStrategy`
+2. introduce `getVisibleItems` to indicate which items are visible in the viewport
+3. README update
+
 ## 2.2.0
 
 1. support check the visible ratio of the observed RenderObject in a viewport

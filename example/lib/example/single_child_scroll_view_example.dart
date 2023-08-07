@@ -99,7 +99,7 @@ class _SingleChildScrollExampleState extends State<SingleChildScrollExample> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          _observer.debugCheckOnstageItems(
+          _observer.getVisibleItems(
             scrollExtent: ScrollExtent.fromPosition(_controller.position),
           );
           // _observer.showInViewport(_controller.position, alignment: 0.5);
