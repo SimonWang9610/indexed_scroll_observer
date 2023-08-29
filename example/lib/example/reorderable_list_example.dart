@@ -1,5 +1,3 @@
-import 'dart:math';
-
 import 'package:flutter/material.dart';
 import 'package:positioned_scroll_observer/positioned_scroll_observer.dart';
 import 'sliver_jump.dart';

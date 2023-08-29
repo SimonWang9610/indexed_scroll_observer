@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
 import 'package:positioned_scroll_observer/positioned_scroll_observer.dart';
@@ -152,13 +151,13 @@ class RenderScrollObserverProxy<T extends RenderObject> extends RenderProxyBox {
       return null;
     }
 
-    AbstractNode? ancestor = parent;
+    RenderObject? ancestor = parent as RenderObject?;
 
     while (ancestor != null) {
       if (ancestor is T) {
         return ancestor;
       } else {
-        ancestor = ancestor.parent;
+        ancestor = ancestor.parent as RenderObject?;
       }
     }
     return null;

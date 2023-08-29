@@ -1,3 +1,7 @@
+## 2.2.2
+
+- fix lint errors
+
 ## 2.2.1
 
 1. rename `OnstageStrategy` to `VisibilityStrategy`
