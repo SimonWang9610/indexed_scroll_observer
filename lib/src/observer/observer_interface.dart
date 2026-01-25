@@ -19,7 +19,7 @@ const double _kPixelDiffTolerance = 5;
 
 const Duration _kDefaultAdjustDuration = Duration(milliseconds: 60);
 
-abstract class ObserverScrollInterface {
+abstract mixin class ObserverScrollInterface {
   /// indicates that if some children have been laid out completely and are being painted on the screen,
   bool get firstLayoutFinished;
 

@@ -1,9 +1,7 @@
 import 'package:flutter/widgets.dart';
-import 'package:flutter/rendering.dart';
 
 import 'observer_proxy.dart';
 import '../observer/sliver_observer.dart';
-import '../observer/layout_observer.dart';
 
 class PositionedChildListDelegate extends SliverPositionedProxyDelegate {
   final List<Widget> children;
@@ -140,13 +138,6 @@ abstract class SliverPositionedProxyDelegate extends SliverChildDelegate {
 
   @override
   Widget? build(BuildContext context, int index) {
-    assert(
-      observer != null &&
-          observer!.hasMultiChild &&
-          observer is LayoutObserver<RenderSliver>,
-      "For list/grid that is a kind of slivers, should use [MultiChildSliverObserver], but got ${observer.runtimeType}",
-    );
-
     if (index < 0 ||
         (estimatedChildCount == null || index >= estimatedChildCount!)) {
       return null;

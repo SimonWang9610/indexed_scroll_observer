@@ -7,11 +7,14 @@ import 'visibility_strategy.dart';
 import 'item_estimation.dart';
 import 'util.dart';
 
-abstract class SliverScrollObserver extends LayoutObserver<RenderSliver>
+abstract class SliverScrollObserver extends LayoutObserver
     with ObserverScrollInterface, ObserverScrollImpl {
   @override
-  bool get hasMultiChild =>
-      super.hasMultiChild && this is MultiChildSliverObserver;
+  bool isDesiredRenderObject(RenderObject renderObject) =>
+      renderObject is RenderSliver;
+
+  @override
+  RenderSliver? get renderObject => super.renderObject as RenderSliver?;
 
   @override
   bool get renderVisible =>
@@ -68,12 +71,13 @@ class SingleChildSliverObserver extends SliverScrollObserver
 
   @override
   void onLayout(
-    RenderSliver value, {
+    RenderObject value, {
     required Size size,
     ParentData? parentData,
   }) {
-    assert(value is SingleChildRenderBox,
-        "$runtimeType is designed for single child sliver, but ${value.runtimeType} is not suitable for this scroll observer");
+    assert(isDesiredRenderObject(value),
+        "Expected [SingleChildRenderBox], but got ${value.runtimeType}");
+
     super.onLayout(value, size: size, parentData: parentData);
     this.size = size;
   }
@@ -103,18 +107,19 @@ class MultiChildSliverObserver extends SliverScrollObserver
 
   @override
   void onLayout(
-    RenderSliver value, {
+    RenderObject value, {
     required Size size,
     ParentData? parentData,
   }) {
-    assert(value is MultiChildSliver,
-        "$runtimeType is designed for multi children slivers, but ${value.runtimeType} is not suitable for this scroll observer");
+    assert(isDesiredRenderObject(value),
+        "Expected [RenderSliverMultiBoxAdaptor], but got ${value.runtimeType}");
+
     super.onLayout(value, size: size, parentData: parentData);
 
-    if (!isDesiredParentData(parentData)) {
-      throw ErrorDescription(
-          "Expected [SliverMultiBoxAdaptorParentData], but got ${parentData.runtimeType}");
-    }
+    assert(
+      isDesiredParentData(parentData),
+      "Expected [SliverMultiBoxAdaptorParentData], but got ${parentData.runtimeType}",
+    );
 
     sizes[(parentData as SliverMultiBoxAdaptorParentData).index!] = size;
   }

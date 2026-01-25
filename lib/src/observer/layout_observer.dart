@@ -19,12 +19,12 @@ typedef MultiChildSliver
 /// See also:
 ///   * [RenderObserverProxy], which invoke [LayoutObserver.onLayout] and [LayoutObserver.doFinishLayout]
 ///   to complete the process of observing
-abstract class LayoutObserver<T extends RenderObject> {
-  T? _renderObject;
+abstract class LayoutObserver {
+  RenderObject? _renderObject;
 
   /// [RenderObject] is being observed
   @protected
-  T? get renderObject => _renderObject;
+  RenderObject? get renderObject => _renderObject;
 
   /// if there is a [RenderObject] that is observed
   bool get isActive => _renderObject != null;
@@ -59,14 +59,15 @@ abstract class LayoutObserver<T extends RenderObject> {
     }
   }
 
-  bool get hasMultiChild => itemCount == null || itemCount! > 1;
+  /// If it observes multiple scrollable children
+  // bool get hasMultiChild;
 
   /// set [renderObject] if both are not identical,
   /// and mark [shouldUpdateOrigin] as true to do [_updateRenderOrigin].
   /// Meanwhile, it should mark [shouldDoFinishLayout] as true since some items are laid out
   @mustCallSuper
   void onLayout(
-    T value, {
+    RenderObject value, {
     required Size size,
     ParentData? parentData,
   }) {
@@ -85,7 +86,7 @@ abstract class LayoutObserver<T extends RenderObject> {
   void doFinishLayout() {
     assert(
       _renderObject != null,
-      "No $T is being observed",
+      "No RenderObject is being observed",
     );
     _updateRenderOrigin();
   }
@@ -173,4 +174,6 @@ abstract class LayoutObserver<T extends RenderObject> {
   /// check if [parentData] is desired for an observer.
   /// it should be implemented by the subclasses of [LayoutObserver]
   bool isDesiredParentData(ParentData? parentData);
+
+  bool isDesiredRenderObject(RenderObject renderObject);
 }

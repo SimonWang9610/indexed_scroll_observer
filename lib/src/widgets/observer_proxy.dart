@@ -2,8 +2,9 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
 import 'package:positioned_scroll_observer/positioned_scroll_observer.dart';
 
-class ObserverProxy extends SingleChildRenderObjectWidget {
-  final LayoutObserver observer;
+class ObserverProxy<T extends LayoutObserver>
+    extends SingleChildRenderObjectWidget {
+  final T observer;
 
   const ObserverProxy({
     super.key,
@@ -12,31 +13,8 @@ class ObserverProxy extends SingleChildRenderObjectWidget {
   });
 
   @override
-  RenderScrollObserverProxy createRenderObject(BuildContext context) {
-    assert(
-      () {
-        return observer is LayoutObserver<RenderSliver> ||
-            observer is LayoutObserver<MultiChildRenderBox> ||
-            observer is LayoutObserver<SingleChildRenderBox>;
-      }(),
-      "Currently, [ObserverProxy] only supports four kinds of observers: [MultiChildSliverObserver], "
-      "[SingleChildSliverObserver] for slivers and [MultiChildBoxObserver] and [SingleChildBoxObserver], "
-      "for boxes.",
-    );
-
-    if (observer is LayoutObserver<RenderSliver>) {
-      return RenderScrollObserverProxy<RenderSliver>(
-        observer: observer as LayoutObserver<RenderSliver>,
-      );
-    } else if (observer is LayoutObserver<MultiChildRenderBox>) {
-      return RenderScrollObserverProxy<MultiChildRenderBox>(
-        observer: observer as LayoutObserver<MultiChildRenderBox>,
-      );
-    } else {
-      return RenderScrollObserverProxy<SingleChildRenderBox>(
-        observer: observer as LayoutObserver<SingleChildRenderBox>,
-      );
-    }
+  RenderScrollObserverProxy<T> createRenderObject(BuildContext context) {
+    return RenderScrollObserverProxy<T>(observer: observer);
   }
 
   @override
@@ -46,68 +24,17 @@ class ObserverProxy extends SingleChildRenderObjectWidget {
   }
 }
 
-class SliverObserverProxy extends SingleChildRenderObjectWidget {
-  final SliverScrollObserver observer;
-
-  const SliverObserverProxy({
-    super.key,
-    super.child,
-    required this.observer,
-  });
-
-  @override
-  RenderScrollObserverProxy createRenderObject(BuildContext context) {
-    return RenderScrollObserverProxy<RenderSliver>(
-      observer: observer,
-    );
-  }
-
-  @override
-  void updateRenderObject(
-      BuildContext context, covariant RenderScrollObserverProxy renderObject) {
-    renderObject.observer = observer;
-  }
-}
-
-class BoxObserverProxy extends SingleChildRenderObjectWidget {
-  final BoxScrollObserver observer;
-
-  const BoxObserverProxy({
-    super.key,
-    super.child,
-    required this.observer,
-  });
-
-  @override
-  RenderScrollObserverProxy createRenderObject(BuildContext context) {
-    if (observer.hasMultiChild) {
-      return RenderScrollObserverProxy<MultiChildRenderBox>(
-        observer: observer as LayoutObserver<MultiChildRenderBox>,
-      );
-    } else {
-      return RenderScrollObserverProxy<SingleChildRenderBox>(
-        observer: observer as LayoutObserver<SingleChildRenderBox>,
-      );
-    }
-  }
-
-  @override
-  void updateRenderObject(
-      BuildContext context, covariant RenderScrollObserverProxy renderObject) {
-    renderObject.observer = observer;
-  }
-}
-
-class RenderScrollObserverProxy<T extends RenderObject> extends RenderProxyBox {
-  LayoutObserver<T>? _observer;
+class RenderScrollObserverProxy<T extends LayoutObserver>
+    extends RenderProxyBox {
+  T? _observer;
 
   RenderScrollObserverProxy({
     RenderBox? child,
-    LayoutObserver<T>? observer,
+    T? observer,
   })  : _observer = observer,
         super(child);
 
-  set observer(LayoutObserver<T>? newObserver) {
+  set observer(T? newObserver) {
     if (_observer == newObserver) return;
 
     assert(
@@ -146,38 +73,36 @@ class RenderScrollObserverProxy<T extends RenderObject> extends RenderProxyBox {
     }
   }
 
-  T? _findAncestorRenderObject() {
+  RenderObject? _findAncestorRenderObject() {
     if (child == null || _observer == null || !_observer!.isObserving) {
       return null;
     }
 
-    RenderObject? ancestor = parent as RenderObject?;
+    RenderObject? ancestor = parent;
 
     while (ancestor != null) {
-      if (ancestor is T) {
+      if (_observer!.isDesiredRenderObject(ancestor)) {
         return ancestor;
       } else {
-        ancestor = ancestor.parent as RenderObject?;
+        ancestor = ancestor.parent;
       }
     }
     return null;
   }
 
   ParentData? _findDesiredParentData(RenderObject ancestor) {
-    if (_observer == null ||
-        !_observer!.hasMultiChild ||
-        _observer!.isDesiredParentData(parentData)) {
+    if (_observer == null || _observer!.isDesiredParentData(parentData)) {
       return parentData;
     }
 
-    RenderObject? node = parent as RenderObject?;
+    RenderObject? node = parent;
     ParentData? ancestorData = node?.parentData;
 
     while (ancestorData != null && node != ancestor) {
       if (_observer!.isDesiredParentData(ancestorData)) {
         return ancestorData;
       } else {
-        node = node?.parent as RenderObject?;
+        node = node?.parent;
         ancestorData = node?.parentData;
       }
     }
