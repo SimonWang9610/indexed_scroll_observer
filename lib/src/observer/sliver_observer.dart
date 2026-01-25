@@ -113,12 +113,13 @@ class MultiChildSliverObserver extends SliverScrollObserver
   }) {
     assert(isDesiredRenderObject(value),
         "Expected [RenderSliverMultiBoxAdaptor], but got ${value.runtimeType}");
+
     super.onLayout(value, size: size, parentData: parentData);
 
-    if (!isDesiredParentData(parentData)) {
-      throw ErrorDescription(
-          "Expected [SliverMultiBoxAdaptorParentData], but got ${parentData.runtimeType}");
-    }
+    assert(
+      isDesiredParentData(parentData),
+      "Expected [SliverMultiBoxAdaptorParentData], but got ${parentData.runtimeType}",
+    );
 
     sizes[(parentData as SliverMultiBoxAdaptorParentData).index!] = size;
   }

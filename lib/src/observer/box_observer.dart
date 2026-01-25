@@ -106,15 +106,15 @@ class MultiChildBoxObserver extends BoxScrollObserver
   }) {
     super.onLayout(value, size: size, parentData: parentData);
 
-    if (!isDesiredRenderObject(value)) {
-      throw ErrorDescription(
-          "Expected [MultiChildRenderBox], but got ${value.runtimeType}");
-    }
+    assert(
+      isDesiredRenderObject(value),
+      "Expected [MultiChildRenderBox], but got ${value.runtimeType}",
+    );
 
-    if (!isDesiredParentData(parentData)) {
-      throw ErrorDescription(
-          "Expected [ContainerBoxParentData<RenderBox>], but got ${parentData.runtimeType}");
-    }
+    assert(
+      isDesiredParentData(parentData),
+      "Expected [ContainerBoxParentData], but got ${parentData.runtimeType}",
+    );
 
     sizes[parentData!.hashCode] = size;
   }

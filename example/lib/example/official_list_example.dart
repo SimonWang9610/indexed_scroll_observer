@@ -12,7 +12,7 @@ class OfficialListExample extends StatefulWidget {
 }
 
 class _OfficialListExampleState extends State<OfficialListExample> {
-  int _itemCount = 0;
+  int _itemCount = 100;
 
   final ScrollController _controller = ScrollController();
 
@@ -110,7 +110,10 @@ class _OfficialListExampleState extends State<OfficialListExample> {
               controller: _controller,
               reverse: true,
               physics: const PositionRetainedScrollPhysics(),
-              itemBuilder: (context, index) => _items[index],
+              itemBuilder: (context, index) => Container(
+                padding: const EdgeInsets.all(8.0),
+                child: _items[index],
+              ),
               itemCount: _itemCount,
             ),
           )
