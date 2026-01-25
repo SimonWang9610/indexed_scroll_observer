@@ -1,13 +1,13 @@
 name: positioned_scroll_observer
 description: An elegant scroll observer that support most scroll views could jump/animateToIndex without breaking current widgets.
 
-version: 2.3.1
+version: 2.2.3
 homepage: https://github.com/SimonWang9610/indexed_scroll_observer
 repository: https://github.com/SimonWang9610/indexed_scroll_observer
 issue_tracker: https://github.com/SimonWang9610/indexed_scroll_observer/issues
 
 environment:
-  sdk: ">=3.0.0"
+  sdk: ">=3.0.0 <4.0.0"
   flutter: ">=1.17.0"
 
 dependencies:

@@ -1,4 +1,4 @@
-## 2.3.1
+## 2.2.3
 - remove generic type parameter from `LayoutObserver`
 - add `isDesiredRenderObject` to `LayoutObserver` to indicate whether the observed RenderObject is the one we want during layout
 - remove `hasMultiChild` from `LayoutObserver`, use `isDesiredRenderObject` instead
