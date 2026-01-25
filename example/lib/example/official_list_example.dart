@@ -12,12 +12,11 @@ class OfficialListExample extends StatefulWidget {
 }
 
 class _OfficialListExampleState extends State<OfficialListExample> {
-  int _itemCount = 100;
+  int _itemCount = 0;
 
   final ScrollController _controller = ScrollController();
 
-  late final SliverScrollObserver _observer =
-      MultiChildSliverObserver(itemCount: _itemCount);
+  late final _observer = MultiChildSliverObserver(itemCount: _itemCount);
 
   late final List<Widget> _items = List.generate(_itemCount, (index) => index)
       .map(
@@ -79,6 +78,11 @@ class _OfficialListExampleState extends State<OfficialListExample> {
                 },
                 child: const Text("Go to end"),
               ),
+              OutlinedButton(
+                  onPressed: () {
+                    _addItem();
+                  },
+                  child: const Text("Add Item")),
             ],
           ),
           SliverJumpWidget(
@@ -168,7 +172,7 @@ class OfficialSeparatedListExample extends StatefulWidget {
 
 class _OfficialSeparatedListExampleState
     extends State<OfficialSeparatedListExample> {
-  int _itemCount = 1000;
+  int _itemCount = 0;
 
   final ScrollController _controller = ScrollController();
 

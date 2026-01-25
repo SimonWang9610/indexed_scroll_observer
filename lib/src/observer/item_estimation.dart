@@ -11,8 +11,7 @@ import 'visibility_strategy.dart';
 /// Used for observers whose [hasMultiChild] is true.
 /// Such observers need to observe multi children for a [RenderObject],
 /// and [estimateScrollOffset] when developers want to scroll to a specific index.
-mixin MultiChildEstimation<T extends RenderObject>
-    on LayoutObserver<T>, ObserverScrollInterface {
+mixin MultiChildEstimation on LayoutObserver, ObserverScrollInterface {
   final Map<int, ItemScrollExtent> _items = {};
   final Map<int, Size> _sizes = {};
 
@@ -207,8 +206,7 @@ mixin MultiChildEstimation<T extends RenderObject>
 /// Used for observers whose [hasMultiChild] is false.
 /// [itemCount] for such observers is always 1, since it only has one child.
 /// therefore, the setter of [itemCount] is always setting as 1.
-mixin SingleChildEstimation<T extends RenderObject>
-    on LayoutObserver<T>, ObserverScrollInterface {
+mixin SingleChildEstimation on LayoutObserver, ObserverScrollInterface {
   Size? _size;
   ItemScrollExtent? _itemScrollExtent;
 

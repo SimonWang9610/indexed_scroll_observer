@@ -1,3 +1,9 @@
+## 2.3.1
+- remove generic type parameter from `LayoutObserver`
+- add `isDesiredRenderObject` to `LayoutObserver` to indicate whether the observed RenderObject is the one we want during layout
+- remove `hasMultiChild` from `LayoutObserver`, use `isDesiredRenderObject` instead
+- fix: wrongly determine if the observer is multi-child observer in `SliverMultiChildObserver`
+
 ## 2.2.2
 
 - fix lint errors

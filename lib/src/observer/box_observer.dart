@@ -16,18 +16,14 @@ import 'util.dart';
 /// See also:
 ///   * [SingleChildSliverObserver], which observe a sliver with single child
 ///   * [MultiChildSliverObserver], which observer a sliver with multi children
-abstract class BoxScrollObserver<T extends RenderObject>
-    extends LayoutObserver<T> with ObserverScrollInterface, ObserverScrollImpl {
+abstract class BoxScrollObserver extends LayoutObserver
+    with ObserverScrollInterface, ObserverScrollImpl {
   BoxScrollObserver({
     required Axis axis,
     int? itemCount,
   }) : _axis = axis {
     itemCount = itemCount;
   }
-
-  @override
-  bool get hasMultiChild =>
-      super.hasMultiChild && this is MultiChildBoxObserver;
 
   Axis _axis;
   @override
@@ -90,7 +86,7 @@ abstract class BoxScrollObserver<T extends RenderObject>
 /// [MultiChildBoxObserver] would only observe the closest [MultiChildRenderBox] ancestor
 /// Since the [renderObject] may not give its children a index, so we store items' size
 /// by items' [ParentData.hashCode]
-class MultiChildBoxObserver extends BoxScrollObserver<MultiChildRenderBox>
+class MultiChildBoxObserver extends BoxScrollObserver
     with MultiChildEstimation {
   MultiChildBoxObserver({required super.axis, super.itemCount});
 
@@ -99,12 +95,21 @@ class MultiChildBoxObserver extends BoxScrollObserver<MultiChildRenderBox>
       parentData != null && parentData is ContainerBoxParentData<RenderBox>;
 
   @override
+  bool isDesiredRenderObject(RenderObject renderObject) =>
+      renderObject is MultiChildRenderBox;
+
+  @override
   void onLayout(
-    MultiChildRenderBox value, {
+    RenderObject value, {
     required Size size,
     ParentData? parentData,
   }) {
     super.onLayout(value, size: size, parentData: parentData);
+
+    if (!isDesiredRenderObject(value)) {
+      throw ErrorDescription(
+          "Expected [MultiChildRenderBox], but got ${value.runtimeType}");
+    }
 
     if (!isDesiredParentData(parentData)) {
       throw ErrorDescription(
@@ -119,8 +124,8 @@ class MultiChildBoxObserver extends BoxScrollObserver<MultiChildRenderBox>
     super.doFinishLayout();
 
     assert(
-      renderObject is MultiChildRenderBox,
-      "${renderObject.runtimeType} does not have multi box-based children",
+      renderObject != null && isDesiredRenderObject(renderObject!),
+      "Expected [MultiChildRenderBox], but got ${renderObject.runtimeType}",
     );
 
     if (shouldDoFinishLayout && isObserving) {
@@ -198,12 +203,16 @@ class MultiChildBoxObserver extends BoxScrollObserver<MultiChildRenderBox>
 }
 
 // todo: waiting testing
-class SingleChildBoxObserver extends BoxScrollObserver<SingleChildRenderBox>
+class SingleChildBoxObserver extends BoxScrollObserver
     with SingleChildEstimation {
   SingleChildBoxObserver({required super.axis});
 
   @override
   bool isDesiredParentData(ParentData? parentData) => parentData != null;
+
+  @override
+  bool isDesiredRenderObject(RenderObject renderObject) =>
+      renderObject is SingleChildRenderBox;
 
   @override
   bool isRevealed(
@@ -218,10 +227,15 @@ class SingleChildBoxObserver extends BoxScrollObserver<SingleChildRenderBox>
 
   @override
   void onLayout(
-    SingleChildRenderBox value, {
+    RenderObject value, {
     required Size size,
     ParentData? parentData,
   }) {
+    assert(
+      isDesiredRenderObject(value),
+      "Expected [SingleChildRenderBox], but got ${value.runtimeType}",
+    );
+
     super.onLayout(value, size: size, parentData: parentData);
     this.size = size;
   }
